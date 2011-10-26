@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+
+import os
+import logging
+from werkzeug.serving import run_simple
+from coverart_redirect.server import make_application
+
+logging.basicConfig(level=logging.DEBUG)
+
+config_path = os.path.dirname(os.path.abspath(__file__)) + '/coverart_redirect.conf'
+application = make_application(config_path)
+
+host = 'localhost'
+port = 8080
+
+run_simple(host, port, application, use_reloader=True)

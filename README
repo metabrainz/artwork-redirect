@@ -1,0 +1,13 @@
+Cover art archive URL redirect service
+--------------------------------------
+
+This service will redirect from coverartarchive.org URLs to archive.org URLs, taking into
+account MBID redirects caused by releases merges. 
+
+This URL:
+
+http://coverartarchive.org/release/8f468f36-8c7e-4fc1-9166-50664d267127/front-000.jpg
+
+should redirect to:
+
+http://archive.org/download/mbid-8f468f36-8c7e-4fc1-9166-50664d267127/mbid-8f468f36-8c7e-4fc1-9166-50664d267127-front-000.jpg
