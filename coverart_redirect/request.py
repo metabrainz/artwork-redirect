@@ -126,12 +126,12 @@ class CoverArtRedirect(object):
 
     def handle_redirect(self, entity, mbid, filename):
         if not entity or entity != 'release':
-            return ["400 Only release entities are supported currently"]
+            return ["400 Only release entities are supported currently", ""]
         # TODO validate MBID
         if not mbid:
-            return ["400 no MBID specified."]
+            return ["400 no MBID specified.", ""]
         if not filename:
-            return ["400 no filename specified."]
+            return ["400 no filename specified.", ""]
 
         return ["307 Temporary Redirect", "http://download.archive.org/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
 
@@ -143,8 +143,8 @@ class CoverArtRedirect(object):
 #        return ["500 Command syntax error, command unknown, command unimplemented."]
 
     def handle(self, entity, mbid, filename):
-        code, response = self.EOL.join(self.handle_redirect(entity, mbid, filename)).encode('utf8') + self.EOL
-        logger.debug("Request %s:\n%s\n", args, response)
+        (code, response) = self.handle_redirect(entity, mbid, filename.encode('utf8')) 
+        logger.debug("Request %s %s %s:\n%s\n", entity, mbid, filename, response)
         return code, response
 
 if __name__ == '__main__':

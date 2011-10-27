@@ -35,9 +35,9 @@ class Server(object):
         filename = shift_path_info(environ)
         with closing(self.engine.connect()) as conn:
             conn.execute("SET search_path TO musicbrainz")
-            (status, location) = CoverArtRedirect(self.config, conn).handle(entity, mbid, filename)
+            status, location = CoverArtRedirect(self.config, conn).handle(entity, mbid, filename)
         start_response(status, [('Location', location)])
-        return [response]
+        return ""
 
 def make_application(config_path):
     app = Server(config_path)
