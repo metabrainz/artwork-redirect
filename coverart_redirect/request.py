@@ -32,13 +32,10 @@ class CoverArtRedirect(object):
 
         return ['200 OK', txt]
 
+    def handle_dir(self, entity, mbid):
+        return ["307 Temporary Redirect", "http://s3.amazonaws.com/mbid-%s" % (mbid)]
+
     def handle_redirect(self, entity, mbid, filename):
-        if not entity or entity != 'release':
-            return ["400 Only release entities are supported currently", ""]
-        if not mbid:
-            return ["400 no MBID specified.", ""]
-        if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{8}', mbid):
-            return ["400 invalid MBID specified.", ""]
         if not filename:
             return ["400 no filename specified.", ""]
 
@@ -61,13 +58,25 @@ class CoverArtRedirect(object):
         return ["307 Temporary Redirect", "http://s3.amazonaws.com/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
 
     def handle(self, environ):
+        print request_uri(environ)
+
         entity = shift_path_info(environ)
 	if not entity:
             return self.handle_index()
+
         mbid = shift_path_info(environ)
-	if not mbid:
-            return ["400 invalid request.", ""]
+        if not mbid:
+            return ["400 no MBID specified.", ""]
+        if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}', mbid):
+            return ["400 invalid MBID specified.", ""]
+
         filename = shift_path_info(environ)
+        if not filename:
+            return self.handle_dir(entity, mbid)
+
+        if not entity or entity != 'release':
+            return ["400 Only release entities are supported currently", ""]
+
         (code, response) = self.handle_redirect(entity, mbid.lower(), filename.encode('utf8')) 
         logger.debug("Request %s %s %s:\n%s\n", entity, mbid, filename, response)
         return code, response

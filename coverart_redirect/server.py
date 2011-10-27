@@ -41,7 +41,7 @@ class Server(object):
                 ('Content-Length', str(len(txt)))])
             return txt
         else:
-            start_response('500 Oops', [])
+            start_response(status, [])
             return ""
 
 
