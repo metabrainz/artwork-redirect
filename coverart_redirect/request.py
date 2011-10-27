@@ -51,7 +51,14 @@ class CoverArtRedirect(object):
         rows = self.conn.execute(query, dict(mbid=mbid)).fetchall()
         if rows:
             mbid = rows[0][0];
-        return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
+
+        # REMOVE ME for testing only!
+        filename = filename.replace("-250", "")
+        filename = filename.replace("-500", "")
+
+        # This hack is for testing only
+        #return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
+        return ["307 Temporary Redirect", "http://s3.amazonaws.com/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
 
     def handle(self, environ):
         entity = shift_path_info(environ)
