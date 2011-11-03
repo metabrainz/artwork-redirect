@@ -12,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class CoverArtRedirect(object):
-
-    EOL = "\r\n"
+    ''' Handles index and redirect requests '''
 
     def __init__(self, config, conn):
         self.config = config
@@ -22,6 +21,8 @@ class CoverArtRedirect(object):
         self.proto = None
 
     def handle_index(self):
+        '''Serve up the one static index page'''
+
         try:
 	    f = open(os.path.join(os.environ['STATIC_DIR'], "index"))
         except IOError:
@@ -33,9 +34,16 @@ class CoverArtRedirect(object):
         return ['200 OK', txt]
 
     def handle_dir(self, entity, mbid):
+        '''When the user requests no file, redirect to the root of the bucket to give the user an
+           index of what is in the bucked'''
+
         return ["307 Temporary Redirect", "http://s3.amazonaws.com/mbid-%s" % (mbid)]
 
     def handle_redirect(self, entity, mbid, filename):
+        '''Handle the actual redirect. Query the database to see if the given release has been
+           merged into another release. If so, return the redirected MBID, otherwise redirect
+           to the given MBID.'''
+
         if not filename:
             return ["400 no filename specified.", ""]
 
@@ -49,6 +57,9 @@ class CoverArtRedirect(object):
         if rows:
             mbid = rows[0][0];
 
+        # ------------------------------------------------------------------------------------------------
+        # Remove me for deploying this service for real. This code is for testing only!
+        # ------------------------------------------------------------------------------------------------
         # REMOVE ME for testing only!
         filename = filename.replace("-250", "")
         filename = filename.replace("-500", "")
@@ -58,7 +69,7 @@ class CoverArtRedirect(object):
         return ["307 Temporary Redirect", "http://s3.amazonaws.com/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
 
     def handle(self, environ):
-        print request_uri(environ)
+        '''Handle a request, parse and validate arguments and dispatch the request'''
 
         entity = shift_path_info(environ)
 	if not entity:

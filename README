@@ -6,8 +6,10 @@ account MBID redirects caused by releases merges.
 
 This URL:
 
-http://coverartarchive.org/release/8f468f36-8c7e-4fc1-9166-50664d267127/front-000.jpg
+   http://coverartarchive.org/release/8f468f36-8c7e-4fc1-9166-50664d267127/front-000.jpg
 
 should redirect to:
 
-http://archive.org/download/mbid-8f468f36-8c7e-4fc1-9166-50664d267127/mbid-8f468f36-8c7e-4fc1-9166-50664d267127-front-000.jpg
+   http://archive.org/download/mbid-8f468f36-8c7e-4fc1-9166-50664d267127/mbid-8f468f36-8c7e-4fc1-9166-50664d267127-front-000.jpg
+
+

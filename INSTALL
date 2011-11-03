@@ -1,0 +1,7 @@
+To install this service, you will need to have the following python packages installed:
+
+sqlalchemy
+werkzeug
+
+With those two python modules installed, this application can be deployed using an WSGI capable
+container.
