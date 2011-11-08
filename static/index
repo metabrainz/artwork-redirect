@@ -15,6 +15,7 @@ a{
 #content{
     padding: 1em 2em 1em 2em;
     background: white;
+    border-radius: 1em;
 }
 #text{
     width: 70%;
@@ -74,8 +75,7 @@ a{
         </p>
         
         <p>
-        <strong>All of the images are stored on the Internet Archive's servers and never
-        touch MusicBrainz servers.</strong> 
+        <strong>Images are uploaded from user's computers directly to Internet Archive servers.</strong> 
         </p>
         <div id="links">
             <a class="link" href="http://archive.org">Internet Archive</a>
