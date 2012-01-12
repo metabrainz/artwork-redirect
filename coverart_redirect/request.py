@@ -4,12 +4,8 @@
 
 import re
 import os
-import logging
 import coverart_redirect
 from wsgiref.util import shift_path_info, request_uri
-
-logger = logging.getLogger(__name__)
-
 
 class CoverArtRedirect(object):
     ''' Handles index and redirect requests '''
@@ -24,7 +20,7 @@ class CoverArtRedirect(object):
         '''Serve up the one static index page'''
 
         try:
-	    f = open(os.path.join(os.environ['STATIC_DIR'], "index"))
+	    f = open(os.path.join(self.config.static_path, "index"))
         except IOError:
             return ['500 Internal Server Error', ""]
 

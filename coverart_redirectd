@@ -8,9 +8,10 @@ from coverart_redirect.server import make_application
 logging.basicConfig(level=logging.DEBUG)
 
 config_path = os.path.dirname(os.path.abspath(__file__)) + '/coverart_redirect.conf'
-application = make_application(config_path)
+static_path = os.path.dirname(os.path.abspath(__file__)) + '/static'
+application = make_application(config_path, static_path)
 
-host = 'localhost'
+host = '0.0.0.0'
 port = 8080
 
 run_simple(host, port, application, use_reloader=True)
