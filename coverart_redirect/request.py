@@ -88,7 +88,7 @@ class CoverArtRedirect(object):
             return ["400 Only release entities are supported currently", ""]
 
         (code, response) = self.handle_redirect(entity, mbid.lower(), filename.encode('utf8')) 
-        logger.debug("Request %s %s %s:\n%s\n", entity, mbid, filename, response)
+        #logger.debug("Request %s %s %s:\n%s\n", entity, mbid, filename, response)
         return code, response
 
 if __name__ == '__main__':
