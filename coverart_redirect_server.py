@@ -4,16 +4,16 @@ import os
 import cherrypy
 from cherrypy import wsgiserver
 from coverart_redirect.server import make_application
+from coverart_redirect.config import Config
 
 config_path = os.path.dirname(os.path.abspath(__file__)) + '/coverart_redirect.conf'
 static_path = os.path.dirname(os.path.abspath(__file__)) + '/static'
-application = make_application(config_path, static_path)
 
-# TODO: Move this config file
-host = '0.0.0.0'
-port = 8080
+config = Config(config_path, static_path)
+application = make_application(config)
 
-server = wsgiserver.CherryPyWSGIServer((host, port), application, server_name='coverartarchive.org')
+server = wsgiserver.CherryPyWSGIServer((config.listen.addr, int(config.listen.port)), 
+                                       application)
 cherrypy.config.update({ 
     'log.screen': True,
     "server.thread_pool" : 10

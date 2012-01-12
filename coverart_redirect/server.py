@@ -14,9 +14,8 @@ from coverart_redirect.request import CoverArtRedirect
 
 class Server(object):
 
-    def __init__(self, config_path, static_path):
-        self.config = Config(config_path)
-        self.config.static_path = static_path
+    def __init__(self, config):
+        self.config = config
         self.engine = sqlalchemy.create_engine(self.config.database.create_url())
 
     def __call__(self, environ, start_response):
@@ -40,7 +39,7 @@ class Server(object):
             start_response("500 internal server error", [])
             return "Whoops. Our bad.\n"
 
-def make_application(config_path, static_path):
-    app = Server(config_path, static_path)
+def make_application(config):
+    app = Server(config)
     return app
 

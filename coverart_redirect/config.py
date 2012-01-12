@@ -5,6 +5,15 @@ import os.path
 import ConfigParser
 from sqlalchemy.engine.url import URL
 
+class ListenConfig(object):
+    def __init__(self):
+        self.addr = None
+        self.port = None
+
+    def read(self, parser, section):
+        self.addr = parser.get(section, 'address')
+        self.port = parser.get(section, 'port')
+
 class DatabaseConfig(object):
 
     def __init__(self):
@@ -41,12 +50,13 @@ class DatabaseConfig(object):
         if parser.has_option(section, 'password'):
             self.password = parser.get(section, 'password')
 
-
 class Config(object):
 
-    def __init__(self, path):
-        #logger.info("Loading configuration file %s", path)
+    def __init__(self, path, static_path):
+        self.static_path = static_path
         parser = ConfigParser.RawConfigParser()
         parser.read(path)
         self.database = DatabaseConfig()
         self.database.read(parser, 'database')
+        self.listen = ListenConfig()
+        self.listen.read(parser, 'listen')

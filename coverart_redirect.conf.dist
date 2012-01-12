@@ -1,5 +1,9 @@
 [database]
-user=musicbrainz
-name=musicbrainz
+user=musicbrainz_user
+name=musicbrainz_db
 host=localhost
 port=5432
+
+[listen]
+address=localhost
+port=8080
