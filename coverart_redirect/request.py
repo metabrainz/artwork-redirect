@@ -64,9 +64,12 @@ class CoverArtRedirect(object):
         filename = filename.replace("-250", "")
         filename = filename.replace("-500", "")
 
+        # Do not munge requests starting with a period (this is where pending edits are stored)
+        filename = "mbid-%s-%s" % (mbid, filename) if not filename.startswith(".") else filename
+
         # This hack is for testing only
-        #return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
-        return ["307 Temporary Redirect", "http://s3.amazonaws.com/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
+        #return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/%s" % (mbid, filename)]
+        return ["307 Temporary Redirect", "http://s3.amazonaws.com/mbid-%s/%s" % (mbid, filename)]
 
     def handle(self, environ):
         '''Handle a request, parse and validate arguments and dispatch the request'''
