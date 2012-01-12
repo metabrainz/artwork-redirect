@@ -2,6 +2,12 @@ To install this service, you will need to have the following python packages ins
 
 sqlalchemy
 werkzeug
+cherrypy
 
-With those two python modules installed, this application can be deployed using an WSGI capable
-container.
+CherryPy is used as the WSGI server. To deploy, simply copy coverart_redirect.conf.dist
+to coverart_redirect.conf, edit the settings to point to a MusicBrainz postgres install
+and where to listen for connections.
+
+Then run coverart_redirect_server.py to run the service. All logging goes to stdout,
+including stacktraces, so its suitable for running inside of daemontools.
+
