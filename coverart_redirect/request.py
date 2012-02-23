@@ -60,7 +60,7 @@ class CoverArtRedirect(object):
         filename = filename.replace("-250", "")
         filename = filename.replace("-500", "")
 
-        return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/%s" % (mbid, filename)]
+        return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
 
 
     def handle(self, environ):
