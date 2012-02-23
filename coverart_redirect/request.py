@@ -33,7 +33,7 @@ class CoverArtRedirect(object):
     def handle_dir(self, entity, mbid):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
            index of what is in the bucked'''
-        return ["307 Temporary Redirect", "http://s3.amazonaws.com/mbid-%s" % (mbid)]
+        return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/index.json" % (mbid)]
 
     def handle_redirect(self, entity, mbid, filename):
         '''Handle the actual redirect. Query the database to see if the given release has been
@@ -60,12 +60,8 @@ class CoverArtRedirect(object):
         filename = filename.replace("-250", "")
         filename = filename.replace("-500", "")
 
-        # Do not munge requests starting with a period (this is where pending edits are stored)
-        filename = "mbid-%s-%s" % (mbid, filename) if not filename.startswith(".") else filename
+        return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/%s" % (mbid, filename)]
 
-        # This hack is for testing only
-        #return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/%s" % (mbid, filename)]
-        return ["307 Temporary Redirect", "http://s3.amazonaws.com/mbid-%s/%s" % (mbid, filename)]
 
     def handle(self, environ):
         '''Handle a request, parse and validate arguments and dispatch the request'''
