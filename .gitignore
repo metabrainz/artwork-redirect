@@ -1,0 +1,4 @@
+*.pyc
+*~
+dist
+coverart_redirect.conf
