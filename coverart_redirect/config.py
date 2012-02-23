@@ -5,6 +5,13 @@ import os.path
 import ConfigParser
 from sqlalchemy.engine.url import URL
 
+class S3Config(object):
+    def __init__(self):
+        self.prefix = None
+
+    def read(self, parser, section):
+        self.prefix = parser.get(section, 'prefix')
+
 class ListenConfig(object):
     def __init__(self):
         self.addr = None
@@ -60,3 +67,5 @@ class Config(object):
         self.database.read(parser, 'database')
         self.listen = ListenConfig()
         self.listen.read(parser, 'listen')
+        self.s3 = S3Config()
+        self.s3.read(parser, 's3')

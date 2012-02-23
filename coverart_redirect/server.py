@@ -24,7 +24,10 @@ class Server(object):
                 conn.execute("SET search_path TO musicbrainz")
                 status, txt = CoverArtRedirect(self.config, conn).handle(environ)
             if status.startswith("307"):
-                start_response(status, [('Location', txt)])
+                start_response(status, [
+                        ('Location', txt),
+                        ('Access-Control-Allow-Origin', '*')
+                        ])
                 return ""
             elif status.startswith("200"):
                 start_response('200 OK', [

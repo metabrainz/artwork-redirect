@@ -17,11 +17,12 @@ class CoverArtRedirect(object):
         self.cmd = None
         self.proto = None
 
+
     def handle_index(self):
         '''Serve up the one static index page'''
 
         try:
-	    f = open(os.path.join(self.config.static_path, "index"))
+            f = open(os.path.join(self.config.static_path, "index"))
         except IOError:
             return ['500 Internal Server Error', ""]
 
@@ -33,7 +34,7 @@ class CoverArtRedirect(object):
     def handle_dir(self, entity, mbid):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
            index of what is in the bucked'''
-        return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/index.json" % (mbid)]
+        return ["307 Temporary Redirect", "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)]
 
     def handle_redirect(self, entity, mbid, filename):
         '''Handle the actual redirect. Query the database to see if the given release has been
@@ -57,17 +58,18 @@ class CoverArtRedirect(object):
         # Remove me for deploying this service for real. This code is for testing only!
         # ------------------------------------------------------------------------------------------------
         # REMOVE ME for testing only!
-        filename = filename.replace("-250", "")
+        filename = filename.replace("-250", "_thumb")
         filename = filename.replace("-500", "")
 
-        return ["307 Temporary Redirect", "http://archive.org/download/mbid-%s/mbid-%s-%s" % (mbid, mbid, filename)]
+        return ["307 Temporary Redirect", "%s/mbid-%s/mbid-%s-%s" % (
+                self.config.s3.prefix, mbid, mbid, filename)]
 
 
     def handle(self, environ):
         '''Handle a request, parse and validate arguments and dispatch the request'''
 
         entity = shift_path_info(environ)
-	if not entity:
+        if not entity:
             return self.handle_index()
 
         mbid = shift_path_info(environ)
@@ -85,6 +87,7 @@ class CoverArtRedirect(object):
 
         (code, response) = self.handle_redirect(entity, mbid.lower(), filename.encode('utf8')) 
         return code, response
+
 
 if __name__ == '__main__':
     from wsgiref.simple_server import make_server

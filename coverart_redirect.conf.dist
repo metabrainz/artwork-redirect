@@ -7,3 +7,6 @@ port=5432
 [listen]
 address=localhost
 port=8080
+
+[s3]
+prefix=http://s3.us.archive.org
