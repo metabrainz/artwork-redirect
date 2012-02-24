@@ -1,8 +1,13 @@
 To install this service, you will need to have the following python packages installed:
 
+cherrypy
+psycopg2
 sqlalchemy
 werkzeug
-cherrypy
+
+On Ubuntu you can install these with the following command:
+
+   sudo apt-get install python-cherrypy3 python-psycopg2 python-sqlalchemy python-werkzeug
 
 CherryPy is used as the WSGI server. To deploy, simply copy coverart_redirect.conf.dist
 to coverart_redirect.conf, edit the settings to point to a MusicBrainz postgres install
