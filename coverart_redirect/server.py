@@ -21,26 +21,26 @@ class Server(object):
     def __call__(self, environ, start_response):
         try:
             with closing(self.engine.connect()) as conn:
-                conn.execute("SET search_path TO musicbrainz")
                 status, txt = CoverArtRedirect(self.config, conn).handle(environ)
+
             if status.startswith("307"):
                 start_response(status, [
                         ('Location', txt),
                         ('Access-Control-Allow-Origin', '*')
                         ])
-                return ""
+                return ["See: ", txt]
             elif status.startswith("200"):
                 start_response('200 OK', [
                 ('Content-Type', 'text/html; charset=UTF-8'),
                 ('Content-Length', str(len(txt)))])
-                return txt
+                return [txt]
             else:
                 start_response(status, [])
-                return ""
+                return []
         except:
             cherrypy.log("Caught exception\n" + traceback.format_exc())
             start_response("500 internal server error", [])
-            return "Whoops. Our bad.\n"
+            return ["Whoops. Our bad.\n"]
 
 def make_application(config):
     app = Server(config)

@@ -9,6 +9,8 @@ import coverart_redirect
 from wsgiref.util import shift_path_info, request_uri
 import cherrypy
 
+# FIXME: fix http status codes.
+
 class CoverArtRedirect(object):
     ''' Handles index and redirect requests '''
 
