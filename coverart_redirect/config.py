@@ -30,7 +30,9 @@ class DatabaseConfig(object):
         self.host = None
         self.port = None
         self.password = None
-	self.static_path = None
+        self.static_path = None
+        self.musicbrainz_schema = None
+        self.coverart_schema = None
 
     def create_url(self, superuser=False):
         kwargs = {}
@@ -56,6 +58,10 @@ class DatabaseConfig(object):
             self.port = parser.getint(section, 'port')
         if parser.has_option(section, 'password'):
             self.password = parser.get(section, 'password')
+        if parser.has_option(section, 'musicbrainz_schema'):
+            self.musicbrainz_schema = parser.get(section, 'musicbrainz_schema')
+        if parser.has_option(section, 'coverart_schema'):
+            self.coverart_schema = parser.get(section, 'coverart_schema')
 
 class Config(object):
 

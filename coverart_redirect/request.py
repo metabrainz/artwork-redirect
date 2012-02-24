@@ -4,6 +4,7 @@
 
 import re
 import os
+import sys
 import coverart_redirect
 from wsgiref.util import shift_path_info, request_uri
 import cherrypy
@@ -16,6 +17,14 @@ class CoverArtRedirect(object):
         self.conn = conn
         self.cmd = None
         self.proto = None
+
+        if not self.config.database.musicbrainz_schema:
+            print "please configure musicbrainz database schema"
+            sys.exit (1)
+
+        if not self.config.database.coverart_schema:
+            print "please configure cover art archive database schema"
+            sys.exit (1)
 
 
     def handle_index(self):
