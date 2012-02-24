@@ -3,6 +3,8 @@
 
 import re
 import syslog
+import werkzeug
+import werkzeug.http
 from logging import Handler
 from logging.handlers import SysLogHandler
 
@@ -67,3 +69,6 @@ class LocalSysLogHandler(Handler):
         except StandardError:
             self.handleError(record)
 
+
+def statuscode (code):
+    return '%d %s' % (code, werkzeug.http.HTTP_STATUS_CODES[code])

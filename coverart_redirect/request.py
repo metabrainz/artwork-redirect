@@ -6,8 +6,8 @@ import re
 import os
 import sys
 import coverart_redirect
+from coverart_redirect.utils import statuscode
 from wsgiref.util import shift_path_info, request_uri
-import cherrypy
 
 # FIXME: fix http status codes.
 
@@ -78,25 +78,25 @@ class CoverArtRedirect(object):
         try:
             f = open(os.path.join(self.config.static_path, "index"))
         except IOError:
-            return ['500 Internal Server Error', ""]
+            return [statuscode (500), "Internal Server Error"]
 
         txt = f.read()
         f.close()
 
-        return ['200 OK', txt]
+        return [statuscode (200), txt]
 
 
     def handle_dir(self, entity, mbid):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
            index of what is in the bucked'''
-        return ["307 Temporary Redirect", "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)]
+        return [statuscode (307), "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)]
 
 
     def handle_redirect(self, entity, mbid, filename):
         """ Handle the 307 redirect. """
 
         if not filename:
-            return ["400 no filename specified.", ""]
+            return [statuscode (400), "no filename specified"]
 
         # ------------------------------------------------------------------------------------------------
         # Remove me for deploying this service for real. This code is for testing only!
@@ -105,7 +105,7 @@ class CoverArtRedirect(object):
         filename = filename.replace("-250", "_thumb")
         filename = filename.replace("-500", "")
 
-        return ["307 Temporary Redirect", "%s/mbid-%s/mbid-%s-%s" % (
+        return [statuscode (307), "%s/mbid-%s/mbid-%s-%s" % (
                 self.config.s3.prefix, mbid, mbid, filename)]
 
 
@@ -116,15 +116,18 @@ class CoverArtRedirect(object):
         if not entity:
             return self.handle_index()
 
+        if entity != 'release':
+            return [statuscode (400), "Only release entities are currently supported"]
+
         req_mbid = shift_path_info(environ)
         if not req_mbid:
-            return ["400 no MBID specified.", ""]
+            return [statuscode (400), "no MBID specified."]
         if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', req_mbid):
-            return ["400 invalid MBID specified.", ""]
+            return [statuscode (400), "invalid MBID specified."]
 
         mbid = self.resolve_mbid (entity, req_mbid)
         if not mbid:
-            return ["404 Not Found", "No %s found with identifier %s" % (entity, req_mbid)]
+            return [statuscode (404), "No %s found with identifier %s" % (entity, req_mbid)]
 
         filename = shift_path_info(environ)
         if not filename:
@@ -133,16 +136,13 @@ class CoverArtRedirect(object):
         if filename.startswith ('front'):
             filename = self.resolve_cover (entity, mbid, 'front')
             if not filename:
-                return ["404 Not Found",
+                return [statuscode (404),
                         "No front cover image found for %s with identifier %s" % (entity, req_mbid)]
         elif filename.startswith ('back'):
             filename = self.resolve_cover (entity, mbid, 'back')
             if not filename:
-                return ["404 Not Found",
+                return [statuscode (404),
                         "No back cover image found for %s with identifier %s" % (entity, req_mbid)]
-
-        if not entity or entity != 'release':
-            return ["400 Only release entities are supported currently", ""]
 
         (code, response) = self.handle_redirect(entity, mbid, filename.encode('utf8'))
         return code, response
