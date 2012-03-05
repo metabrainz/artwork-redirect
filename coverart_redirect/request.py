@@ -98,13 +98,6 @@ class CoverArtRedirect(object):
         if not filename:
             return [statuscode (400), "no filename specified"]
 
-        # ------------------------------------------------------------------------------------------------
-        # Remove me for deploying this service for real. This code is for testing only!
-        # ------------------------------------------------------------------------------------------------
-        # REMOVE ME for testing only!
-        filename = filename.replace("-250", "_thumb")
-        filename = filename.replace("-500", "")
-
         return [statuscode (307), "%s/mbid-%s/mbid-%s-%s" % (
                 self.config.s3.prefix, mbid, mbid, filename)]
 
