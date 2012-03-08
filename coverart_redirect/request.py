@@ -62,10 +62,13 @@ class CoverArtRedirect(object):
             SELECT cover_art.id
               FROM """ + caa + """.cover_art
               JOIN """ + mbz + """.release ON release = release.id
+              JOIN """ + caa + """.cover_art_type ON cover_art.id = cover_art_type.id
+              JOIN """ + caa + """.art_type ON cover_art_type.type_id = art_type.id
              WHERE release.gid = %(mbid)s
-               AND is_""" + type + """ = true;
+               AND art_type.name = %(type)s
+          ORDER BY ordering ASC LIMIT 1;
         """
-        row = self.conn.execute (query, { "mbid": mbid }).first ()
+        row = self.conn.execute (query, { "mbid": mbid, "type": type }).first ()
         if row:
             return unicode(row[0]) + u".jpg"
 
@@ -127,12 +130,12 @@ class CoverArtRedirect(object):
             return self.handle_dir(entity, mbid)
 
         if filename.startswith ('front'):
-            filename = self.resolve_cover (entity, mbid, 'front')
+            filename = self.resolve_cover (entity, mbid, 'Front')
             if not filename:
                 return [statuscode (404),
                         "No front cover image found for %s with identifier %s" % (entity, req_mbid)]
         elif filename.startswith ('back'):
-            filename = self.resolve_cover (entity, mbid, 'back')
+            filename = self.resolve_cover (entity, mbid, 'Back')
             if not filename:
                 return [statuscode (404),
                         "No back cover image found for %s with identifier %s" % (entity, req_mbid)]
