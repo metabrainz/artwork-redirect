@@ -55,9 +55,13 @@ if __name__ == '__main__':
     addr = config.listen.addr
     port = int(config.listen.port)
 
-    if len (sys.argv) < 2 or sys.argv[1] == '--help':
+    option = None
+    if len (sys.argv) > 1:
+        option = sys.argv.pop ()
+
+    if option == '--help':
         help ()
-    elif sys.argv[1] == '-r' or sys.argv[1] == '--development':
+    elif option == '-r' or option == '--development':
         development (addr, port, application)
     else:
         production (addr, port, application)
