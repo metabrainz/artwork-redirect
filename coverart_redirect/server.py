@@ -28,7 +28,7 @@ class Server(object):
                         ('Location', txt),
                         ('Access-Control-Allow-Origin', '*')
                         ])
-                return ["See: ", txt]
+                return ["See: ", txt, "\n"]
             elif status.startswith("200"):
                 start_response(statuscode (200), [
                 ('Content-Type', 'text/html; charset=UTF-8'),
