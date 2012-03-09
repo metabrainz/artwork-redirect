@@ -25,6 +25,8 @@
 import re
 import os
 import sys
+import cgi
+import urllib2
 import coverart_redirect
 from coverart_redirect.utils import statuscode
 from wsgiref.util import shift_path_info, request_uri
@@ -109,10 +111,21 @@ class CoverArtRedirect(object):
         return [statuscode (200), txt]
 
 
-    def handle_dir(self, entity, mbid):
+    def handle_dir(self, entity, mbid, environ):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
-           index of what is in the bucked'''
-        return [statuscode (307), "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)]
+           index of what is in the bucket'''
+
+        index_url = "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)
+
+        qs = cgi.parse_qs (environ['QUERY_STRING'])
+        if not 'jsonp' in qs:
+            return [statuscode (307), index_url]
+
+        jsonp = qs['jsonp'].pop ()
+        data = urllib2.urlopen (index_url).read()
+
+        return [statuscode (200), "%s(%s);" % (jsonp, data)]
+
 
 
     def handle_redirect(self, entity, mbid, filename):
@@ -150,7 +163,7 @@ class CoverArtRedirect(object):
 
         filename = shift_path_info(environ)
         if not filename:
-            return self.handle_dir(entity, mbid)
+            return self.handle_dir(entity, mbid, environ)
 
         if filename.startswith ('front'):
             filename = self.resolve_cover (entity, mbid, 'Front')
