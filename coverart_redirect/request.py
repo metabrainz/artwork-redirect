@@ -122,7 +122,14 @@ class CoverArtRedirect(object):
             return [statuscode (307), index_url]
 
         jsonp = qs['jsonp'].pop ()
-        data = urllib2.urlopen (index_url).read()
+        data = None
+        try:
+            data = urllib2.urlopen (index_url).read()
+        except urllib2.HTTPError as e:
+            if (e.getcode () == 404):
+                data = '{ "images": [], "release": null }'
+            else:
+                raise e
 
         return [statuscode (200), "%s(%s);" % (jsonp, data)]
 
