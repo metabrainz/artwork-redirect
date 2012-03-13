@@ -116,23 +116,7 @@ class CoverArtRedirect(object):
            index of what is in the bucket'''
 
         index_url = "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)
-
-        qs = cgi.parse_qs (environ['QUERY_STRING'])
-        if not 'jsonp' in qs:
-            return [statuscode (307), index_url]
-
-        jsonp = qs['jsonp'].pop ()
-        data = None
-        try:
-            data = urllib2.urlopen (index_url).read()
-        except urllib2.HTTPError as e:
-            if (e.getcode () == 404):
-                data = '{ "images": [], "release": null }'
-            else:
-                raise e
-
-        return [statuscode (200), "%s(%s);" % (jsonp, data)]
-
+        return [statuscode (307), index_url]
 
 
     def handle_redirect(self, entity, mbid, filename):
