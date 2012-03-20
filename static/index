@@ -51,31 +51,32 @@ a{
         <a href="http://archive.org"><img id="ia_logo" src="http://www.archive.org/images/glogo.png"></a>
         <a href="http://musicbrainz.org"><img id="mb_logo" src="http://wiki.musicbrainz.org/-/images/3/3d/Musicbrainz_logo.png"></a>
     </div>
-    <div id="text">
+    <div id="text">     
         <h1>The Cover Art Archive</h1>
 
         <p>
         The Cover Art Archive is a joint project between the <a href="http://archive.org">Internet Archive</a> and 
-        <a href="http://musicbrainz.org">MusicBrainz</a>. The goal of the project is to make cover art images of
-        music releases available to everyone on the Internet. If you have the <a href="http://wiki.musicbrainz.org/MBID">MBID</a>
-        of a release you can construct a URL to retrieve the cover art for a given release. To find out more, please see
-        our <a href="http://wiki.musicbrainz.org/Cover_Art_Archive">Cover Art Archive documentation pages</a>.
+        <a href="http://musicbrainz.org">MusicBrainz</a>, whose goal is to make cover art images of
+        music releases available to everyone on the Internet in an organised and convenient way.
         </p>
 
         <p>
-        To upload cover art images, log in to MusicBrainz (<a href="http://musicbrainz.org/register">create a MusicBrainz 
-        account</a>), <a href="http://musicbrainz.org/search">find a release</a> that needs cover art and click on the 
-        'cover art' tab in the release. Then click on the 'add cover art' link and follow the instructions.
+        If you have the <a href="http://wiki.musicbrainz.org/MBID">MBID</a> of a release you can construct a URL
+        to retrieve the cover art for it. To find out more, please see our <a href="http://wiki.musicbrainz.org/Cover_Art_Archive/API">API documentation</a>.
         </p>
 
         <p>
-        The MusicBrainz community curates the collection of images in the archive. MusicBrainz users upload and
-        peer review uploads to the archive to ensure that the collection of images are correct, free of spam and
-        of the best possible quality.
+        The MusicBrainz community curates the collection of images in the archive. MusicBrainz users upload 
+        the images to the archive and peer review them to ensure that they are correct, free of spam and
+        of the best possible quality. If you want to help improve this collection, see <a href="http://wiki.musicbrainz.org/How_to_Add_Cover_Art">our guide for adding cover art</a> (you'll need to <a href="http://musicbrainz.org/register">create a MusicBrainz account</a> first).
         </p>
-        
+        <br />
         <p>
-        <strong>Images are uploaded from users' computers directly to Internet Archive servers.</strong> 
+        <strong>Images are uploaded from users' computers directly to Internet Archive servers.</strong>
+        </p>
+
+        <p>
+        If you have any question regarding the images in coverartarchive.org, please email info at archive dot org.
         </p>
         <div id="links">
             <a class="link" href="http://archive.org">Internet Archive</a>
