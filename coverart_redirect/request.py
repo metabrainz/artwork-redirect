@@ -51,6 +51,20 @@ class CoverArtRedirect(object):
             sys.exit (1)
 
 
+    def thumbnail (self, filename):
+        if not '-' in filename:
+            return None
+
+        (id, size) = filename.split ('-')
+
+        if size.startswith ('250'):
+            return "-250"
+        elif size.startswith ('500'):
+            return "-500"
+        else:
+            return ""
+
+
     def resolve_mbid (self, entity, mbid):
         """Handle the GID redirect. Query the database to see if the given release has been
            merged into another release. If so, return the redirected MBID, otherwise return
@@ -74,7 +88,7 @@ class CoverArtRedirect(object):
         return mbid
 
 
-    def resolve_cover(self, entity, mbid, type):
+    def resolve_cover(self, entity, mbid, type, thumbnail):
         '''Get the frontiest or backiest cover image.'''
 
         mbz = self.config.database.musicbrainz_schema
@@ -92,7 +106,7 @@ class CoverArtRedirect(object):
         """
         row = self.conn.execute (query, { "mbid": mbid, "type": type }).first ()
         if row:
-            return unicode(row[0]) + u".jpg"
+            return unicode(row[0]) + thumbnail + u".jpg"
 
         return None
 
@@ -157,12 +171,12 @@ class CoverArtRedirect(object):
             return self.handle_dir(entity, mbid, environ)
 
         if filename.startswith ('front'):
-            filename = self.resolve_cover (entity, mbid, 'Front')
+            filename = self.resolve_cover (entity, mbid, 'Front', self.thumbnail (filename))
             if not filename:
                 return [statuscode (404),
                         "No front cover image found for %s with identifier %s" % (entity, req_mbid)]
         elif filename.startswith ('back'):
-            filename = self.resolve_cover (entity, mbid, 'Back')
+            filename = self.resolve_cover (entity, mbid, 'Back', self.thumbnail (filename))
             if not filename:
                 return [statuscode (404),
                         "No back cover image found for %s with identifier %s" % (entity, req_mbid)]
