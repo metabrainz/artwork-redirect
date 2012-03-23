@@ -53,7 +53,7 @@ class CoverArtRedirect(object):
 
     def thumbnail (self, filename):
         if not '-' in filename:
-            return None
+            return ""
 
         (id, size) = filename.split ('-')
 
