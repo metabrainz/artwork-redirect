@@ -70,10 +70,12 @@ a{
         the images to the archive and peer review them to ensure that they are correct, free of spam and
         of the best possible quality. If you want to help improve this collection, see <a href="http://wiki.musicbrainz.org/How_to_Add_Cover_Art">our guide for adding cover art</a> (you'll need to <a href="http://musicbrainz.org/register">create a MusicBrainz account</a> first).
         </p>
-        <br />
-        <p>
-        <strong>Images are uploaded from users' computers directly to Internet Archive servers.</strong>
-        </p>
+
+        <p>Important notes:</p>
+        <ul>
+            <li><strong>Images are uploaded from users' computers directly to Internet Archive servers.</strong></li>
+            <li><strong>All images are copyrighted by their respective copyright owners.</strong></li>
+        </ul>
 
         <p>
         If you have any question regarding the images in coverartarchive.org, please email info at archive dot org.
