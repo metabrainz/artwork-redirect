@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>The Cover Art Archive</title>
+<title>Cover Art Archive</title>
 <style type="text/css">
 <!--
 *{
@@ -46,7 +46,7 @@ h1 {
 </head>
 <body>
 <div id="content">
-    <h1>The Cover Art Archive</h1>
+    <h1>Cover Art Archive</h1>
 
     <div id="images">
         <a href="http://archive.org"><img id="ia_logo" src="http://www.archive.org/images/glogo.png"></a>
