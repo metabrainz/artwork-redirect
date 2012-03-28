@@ -1,89 +1,85 @@
 <html>
 <head>
-<title>The Cover Art Archive</title>
+<title>Cover Art Archive</title>
 <style type="text/css">
 <!--
+*{
+  margin: 0;
+  padding: 0;
+}
 body{
     background: #736DAB;
     margin: 2em 6em 2em 6em;
-    font-weight: 16pt;
+    font-size: 14px;
     font-family: Ariel, Helvetica;
 }
 a{
     text-decoration: none;
 }
+p {
+    margin: 1em 0;
+}
+h1 {
+    margin: 0 0 0.5em;
+}
 #content{
-    padding: 1em 2em 1em 2em;
+    padding: 2em;
     background: white;
-    border-radius: 1em;
+    border-radius: 0.5em;
+    min-height: 248px;
 }
 #text{
-    width: 70%;
+    margin-right: 160px;
+    margin-bottom: -1em;
 }
 #images{
-    position: absolute;
-    left: 75%;
-    width: 25%;
+    float: right;
+    width: 140px;
     text-align: center;
 }
-#ia_logo{
-    margin: 5em 0 2em 1.5em;
+#images a {
     display: block;
-}
-#mb_logo{
-    margin: 2em 0 2em 0;
-    display: block;
-}
-#links{
-    margin: 3em 0 2em 0;
-    text-align: center;
-}
-.link{
-    margin: 0 5em 0 5em;
+    margin-bottom: 2em;
 }
 -->
 </style>
 </head>
 <body>
 <div id="content">
+    <h1>Cover Art Archive</h1>
 
     <div id="images">
         <a href="http://archive.org"><img id="ia_logo" src="http://www.archive.org/images/glogo.png"></a>
         <a href="http://musicbrainz.org"><img id="mb_logo" src="http://wiki.musicbrainz.org/-/images/3/3d/Musicbrainz_logo.png"></a>
     </div>
-    <div id="text">     
-        <h1>The Cover Art Archive</h1>
 
+    <div id="text">
         <p>
-        The Cover Art Archive is a joint project between the <a href="http://archive.org">Internet Archive</a> and 
-        <a href="http://musicbrainz.org">MusicBrainz</a>, whose goal is to make cover art images of
-        music releases available to everyone on the Internet in an organised and convenient way.
+        The Cover Art Archive is a joint project between the <a href="http://archive.org">Internet Archive</a>
+        and <a href="http://musicbrainz.org">MusicBrainz</a>, whose goal is to make cover art images
+        available to everyone on the Internet in an organised and convenient way.
         </p>
 
         <p>
-        If you have the <a href="http://wiki.musicbrainz.org/MBID">MBID</a> of a release you can construct a URL
-        to retrieve the cover art for it. To find out more, please see our <a href="http://wiki.musicbrainz.org/Cover_Art_Archive/API">API documentation</a>.
+        Images in the archive are curated by the MusicBrainz community and go through a peer review process
+        to ensure that they are correct, free of spam and of the best quality. If you would like to
+        contribute cover art, <a href="http://musicbrainz.org/register">create a MusicBrainz account</a>
+        and <a href="http://musicbrainz.org/doc/How_to_Add_Cover_Art">follow the guide</a>.
         </p>
 
         <p>
-        The MusicBrainz community curates the collection of images in the archive. MusicBrainz users upload 
-        the images to the archive and peer review them to ensure that they are correct, free of spam and
-        of the best possible quality. If you want to help improve this collection, see <a href="http://wiki.musicbrainz.org/How_to_Add_Cover_Art">our guide for adding cover art</a> (you'll need to <a href="http://musicbrainz.org/register">create a MusicBrainz account</a> first).
+        MusicBrainz also provides <a href="http://musicbrainz.org/doc/Cover_Art_Archive/API">API documentation</a>
+        for retrieving cover art via a <a href="http://musicbrainz.org/doc/MBID">release MBID</a>.
         </p>
-
-        <p>Important notes:</p>
-        <ul>
-            <li><strong>Images are uploaded from users' computers directly to Internet Archive servers.</strong></li>
-            <li><strong>All images are copyrighted by their respective copyright owners.</strong></li>
-        </ul>
 
         <p>
-        If you have any question regarding the images in coverartarchive.org, please email info at archive dot org.
+        <strong>All images are uploaded from users' computers directly to Internet Archive servers.</strong>
+        <br /><strong>All images are copyrighted by their respective copyright owners.</strong>
         </p>
-        <div id="links">
-            <a class="link" href="http://archive.org">Internet Archive</a>
-            <a class="link" href="http://musicbrainz.org">MusicBrainz</a>
-        </div>
+
+        <p>
+        If you have any questions regarding the images in coverartarchive.org, please email info [at] archive [dot] org.
+        </p>
     </div>
 </div>
 
