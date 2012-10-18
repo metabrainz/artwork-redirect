@@ -71,14 +71,15 @@ class CoverArtRedirect(object):
            the original MBID. """
 
         schema = self.config.database.musicbrainz_schema
+        entity_table = 'release_group' if entity == 'release-group' else entity
 
         mbid = mbid.lower ()
         query = """
-            SELECT release.gid
-              FROM """ + schema + """.release
-              JOIN """ + schema + """.release_gid_redirect
-                ON release_gid_redirect.new_id = release.id
-             WHERE release_gid_redirect.gid = %(mbid)s;
+            SELECT entity.gid
+              FROM """ + schema + "." + entity_table + """ entity
+              JOIN """ + schema + "." + entity_table + """_gid_redirect entity_gid_redirect
+                ON entity_gid_redirect.new_id = entity.id
+             WHERE entity_gid_redirect.gid = %(mbid)s;
         """
 
         row = self.conn.execute (query, { "mbid": mbid }).first ()
@@ -94,19 +95,37 @@ class CoverArtRedirect(object):
         mbz = self.config.database.musicbrainz_schema
         caa = self.config.database.coverart_schema
 
-        query = """
-            SELECT cover_art.id
-              FROM """ + caa + """.cover_art
-              JOIN """ + mbz + """.release ON release = release.id
-              JOIN """ + caa + """.cover_art_type ON cover_art.id = cover_art_type.id
-              JOIN """ + caa + """.art_type ON cover_art_type.type_id = art_type.id
-             WHERE release.gid = %(mbid)s
-               AND art_type.name = %(type)s
-          ORDER BY ordering ASC LIMIT 1;
-        """
-        row = self.conn.execute (query, { "mbid": mbid, "type": type }).first ()
-        if row:
-            return unicode(row[0]) + thumbnail + u".jpg"
+        if entity == 'release':
+            query = """
+                SELECT cover_art.id
+                  FROM """ + caa + """.cover_art
+                  JOIN """ + mbz + """.release ON release = release.id
+                  JOIN """ + caa + """.cover_art_type ON cover_art.id = cover_art_type.id
+                  JOIN """ + caa + """.art_type ON cover_art_type.type_id = art_type.id
+                 WHERE release.gid = %(mbid)s
+                   AND art_type.name = %(type)s
+              ORDER BY ordering ASC LIMIT 1;
+            """
+            row = self.conn.execute (query, { "mbid": mbid, "type": type }).first ()
+            if row:
+                return (unicode(row[0]) + thumbnail + u".jpg", mbid)
+
+        elif entity == 'release-group':
+            query = """
+                SELECT
+                    DISTINCT ON (release.release_group)
+                    index_listing.id, release.gid
+                FROM """ + caa + """.index_listing
+                JOIN """ + mbz + """.release ON release.id = index_listing.release
+                JOIN """ + mbz + """.release_group ON release_group.id = release.release_group
+                FULL OUTER JOIN """ + caa + """.release_group_cover_art ON release_group_cover_art.release = release.id
+                WHERE release_group.gid = %(mbid)s AND is_front = true
+                ORDER BY release.release_group, release_group_cover_art.release,
+                         release.date_year, release.date_month, release.date_day;
+            """
+            row = self.conn.execute (query, { "mbid": mbid }).first ()
+            if row:
+                return (unicode(row[0]) + thumbnail + u".jpg", row[1])
 
         return None
 
@@ -153,8 +172,8 @@ class CoverArtRedirect(object):
         if not entity:
             return self.handle_index()
 
-        if entity != 'release':
-            return [statuscode (400), "Only release entities are currently supported"]
+        if entity not in ('release', 'release-group'):
+            return [statuscode (400), "Only release and release-group entities are currently supported"]
 
         req_mbid = shift_path_info(environ)
         if not req_mbid:
@@ -168,15 +187,18 @@ class CoverArtRedirect(object):
 
         filename = shift_path_info(environ)
         if not filename:
-            return self.handle_dir(entity, mbid, environ)
+            if entity == 'release':
+                return self.handle_dir(entity, mbid, environ)
+            else:
+                return [statuscode (400), "Invalid request."]
 
         if filename.startswith ('front'):
-            filename = self.resolve_cover (entity, mbid, 'Front', self.thumbnail (filename))
+            (filename, mbid) = self.resolve_cover (entity, mbid, 'Front', self.thumbnail (filename))
             if not filename:
                 return [statuscode (404),
                         "No front cover image found for %s with identifier %s" % (entity, req_mbid)]
         elif filename.startswith ('back'):
-            filename = self.resolve_cover (entity, mbid, 'Back', self.thumbnail (filename))
+            (filename, mbid) = self.resolve_cover (entity, mbid, 'Back', self.thumbnail (filename))
             if not filename:
                 return [statuscode (404),
                         "No back cover image found for %s with identifier %s" % (entity, req_mbid)]
