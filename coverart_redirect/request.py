@@ -198,10 +198,15 @@ class CoverArtRedirect(object):
                 return [statuscode (404),
                         "No front cover image found for %s with identifier %s" % (entity, req_mbid)]
         elif filename.startswith ('back'):
-            (filename, mbid) = self.resolve_cover (entity, mbid, 'Back', self.thumbnail (filename))
-            if not filename:
-                return [statuscode (404),
-                        "No back cover image found for %s with identifier %s" % (entity, req_mbid)]
+            if entity == 'release':
+                (filename, mbid) = self.resolve_cover (entity, mbid, 'Back', self.thumbnail (filename))
+                if not filename:
+                    return [statuscode (404),
+                            "No back cover image found for %s with identifier %s" % (entity, req_mbid)]
+            else:
+                return [statuscode (400),
+                        "Back cover is not defined for %s" % entity]
+
 
         (code, response) = self.handle_redirect(entity, mbid, filename.encode('utf8'))
         return code, response
