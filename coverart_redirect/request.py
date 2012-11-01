@@ -28,8 +28,10 @@ import sys
 import cgi
 import urllib2
 import coverart_redirect
+from werkzeug.wrappers import Response
+from werkzeug.utils import pop_path_info
 from coverart_redirect.utils import statuscode
-from wsgiref.util import shift_path_info, request_uri
+from wsgiref.util import request_uri
 
 # FIXME: fix http status codes.
 
@@ -117,23 +119,23 @@ class CoverArtRedirect(object):
         try:
             f = open(os.path.join(self.config.static_path, "index"))
         except IOError:
-            return [statuscode (500), "Internal Server Error"]
+            return Response(status=500, response="Internal Server Error")
 
         txt = f.read()
         f.close()
 
-        return [statuscode (200), txt]
+        return Response (response=txt)
 
 
-    def handle_dir(self, entity, mbid, environ):
+    def handle_dir(self, request, entity, mbid, environ):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
            index of what is in the bucket'''
 
         index_url = "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)
-        return [statuscode (307), index_url]
+        return request.redirect (code=307, location=index_url)
 
 
-    def handle_redirect(self, entity, mbid, filename):
+    def handle_redirect(self, request, entity, mbid, filename):
         """ Handle the 307 redirect. """
 
         if not filename:
@@ -142,44 +144,45 @@ class CoverArtRedirect(object):
         filename = filename.replace("-250.jpg", "_thumb250.jpg")
         filename = filename.replace("-500.jpg", "_thumb500.jpg")
 
-        return [statuscode (307), "%s/mbid-%s/mbid-%s-%s" % (
-                self.config.s3.prefix, mbid, mbid, filename)]
+        url = "%s/mbid-%s/mbid-%s-%s" % (self.config.s3.prefix, mbid, mbid, filename)
+        return request.redirect (code=307, location=url)
 
 
-    def handle(self, environ):
+    def handle(self, request):
         '''Handle a request, parse and validate arguments and dispatch the request'''
 
-        entity = shift_path_info(environ)
+        entity = pop_path_info(environ)
         if not entity:
             return self.handle_index()
 
         if entity != 'release':
-            return [statuscode (400), "Only release entities are currently supported"]
+            return Response (status=400, response=
+                             "Only release entities are currently supported")
 
         req_mbid = shift_path_info(environ)
         if not req_mbid:
-            return [statuscode (400), "no MBID specified."]
+            return Response (status=400, response="no MBID specified.")
         if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', req_mbid):
-            return [statuscode (400), "invalid MBID specified."]
+            return Response (status=400, response="invalid MBID specified.")
 
         mbid = self.resolve_mbid (entity, req_mbid)
         if not mbid:
-            return [statuscode (404), "No %s found with identifier %s" % (entity, req_mbid)]
+            return Response (status=404, response=
+                             "No %s found with identifier %s" % (entity, req_mbid))
 
-        filename = shift_path_info(environ)
+        filename = pop_path_info(environ)
         if not filename:
             return self.handle_dir(entity, mbid, environ)
 
         if filename.startswith ('front'):
             filename = self.resolve_cover (entity, mbid, 'Front', self.thumbnail (filename))
             if not filename:
-                return [statuscode (404),
-                        "No front cover image found for %s with identifier %s" % (entity, req_mbid)]
+                return Response(status=404, response=
+                                "No front cover image found for %s with identifier %s" % (entity, req_mbid))
         elif filename.startswith ('back'):
             filename = self.resolve_cover (entity, mbid, 'Back', self.thumbnail (filename))
             if not filename:
-                return [statuscode (404),
-                        "No back cover image found for %s with identifier %s" % (entity, req_mbid)]
+                return Response(status=404, response=
+                                "No back cover image found for %s with identifier %s" % (entity, req_mbid))
 
-        (code, response) = self.handle_redirect(entity, mbid, filename.encode('utf8'))
-        return code, response
+        return self.handle_redirect(request, entity, mbid, filename.encode('utf8'))
