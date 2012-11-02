@@ -81,7 +81,9 @@ class CoverArtRedirect(object):
              WHERE release_gid_redirect.gid = %(mbid)s;
         """
 
-        row = self.conn.execute (query, { "mbid": mbid }).first ()
+        resultproxy = self.conn.execute (query, { "mbid": mbid })
+        row = resultproxy.fetchone ()
+        resultproxy.close ()
         if row:
             return row[0];
 
@@ -104,7 +106,10 @@ class CoverArtRedirect(object):
                AND art_type.name = %(type)s
           ORDER BY ordering ASC LIMIT 1;
         """
-        row = self.conn.execute (query, { "mbid": mbid, "type": type }).first ()
+
+        resultproxy = self.conn.execute (query, { "mbid": mbid, "type": type })
+        row = resultproxy.fetchone ()
+        resultproxy.close ()
         if row:
             return unicode(row[0]) + thumbnail + u".jpg"
 
