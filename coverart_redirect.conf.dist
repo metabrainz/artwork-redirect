@@ -6,6 +6,14 @@ port=5432
 musicbrainz_schema=musicbrainz
 coverart_schema=cover_art_archive
 
+[testdatabase]
+user=musicbrainz_user
+name=musicbrainz_test
+host=localhost
+port=5432
+musicbrainz_schema=musicbrainz
+coverart_schema=cover_art_archive
+
 [listen]
 address=localhost
 port=8080

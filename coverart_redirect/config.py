@@ -65,13 +65,18 @@ class DatabaseConfig(object):
 
 class Config(object):
 
-    def __init__(self, path, static_path):
+    def __init__(self, path, static_path, test=False):
         self.static_path = static_path
         parser = ConfigParser.RawConfigParser()
         parser.read(path)
         self.database = DatabaseConfig()
-        self.database.read(parser, 'database')
+        if test:
+            self.database.read(parser, 'database')
+        else:
+            self.database.read(parser, 'testdatabase')
         self.listen = ListenConfig()
         self.listen.read(parser, 'listen')
         self.s3 = S3Config()
         self.s3.read(parser, 's3')
+
+

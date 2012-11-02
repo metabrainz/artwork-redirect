@@ -23,7 +23,7 @@
 
 import os
 import sys
-from coverart_redirect.server import make_application
+from coverart_redirect.server import Server
 from coverart_redirect.config import Config
 
 def production (addr, port, application):
@@ -65,12 +65,22 @@ options:
     sys.exit (0)
 
 
-if __name__ == '__main__':
+def load_config (test=False):
+    """ Load configuration from coverart_redirect.conf.
+
+    if test=True will take the database configuration from the
+    [testdatabase] section instead of the [database] section.
+    """
+
     config_path = os.path.dirname(os.path.abspath(__file__)) + '/coverart_redirect.conf'
     static_path = os.path.dirname(os.path.abspath(__file__)) + '/static'
 
-    config = Config(config_path, static_path)
-    application = make_application(config)
+    return Config(config_path, static_path, test)
+
+
+if __name__ == '__main__':
+    config = load_config ()
+    application = Server (config)
 
     addr = config.listen.addr
     port = int(config.listen.port)

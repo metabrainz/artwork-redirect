@@ -62,8 +62,3 @@ class Server(object):
             cherrypy.log("Caught exception\n" + traceback.format_exc())
             start_response(statuscode (500), [])
             return ["Whoops. Our bad.\n"]
-
-def make_application(config):
-    app = Server(config)
-    return app
-
