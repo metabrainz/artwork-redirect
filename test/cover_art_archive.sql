@@ -6,6 +6,8 @@ TRUNCATE TABLE art_type CASCADE;
 TRUNCATE TABLE artist_name CASCADE;
 TRUNCATE TABLE editor CASCADE;
 TRUNCATE TABLE release_name CASCADE;
+TRUNCATE TABLE release_group_primary_type CASCADE;
+TRUNCATE TABLE release_status CASCADE;
 
 INSERT INTO artist_name (id, name) VALUES (1, 'J Alvarez');
 INSERT INTO artist (id, gid, name, sort_name)
@@ -14,6 +16,9 @@ INSERT INTO artist (id, gid, name, sort_name)
 INSERT INTO artist_credit (id, name, artist_count) VALUES (1, 1, 1);
 INSERT INTO artist_credit_name (artist_credit, artist, name, position, join_phrase)
     VALUES (1, 1, 1, 0, '');
+
+INSERT INTO release_group_primary_type (id, name) VALUES (1, 'Album'), (2, 'Single');
+INSERT INTO release_status (id, name) VALUES (1, 'Official');
 
 INSERT INTO release_name (id, name) VALUES (1, 'El dueño del sistema');
 INSERT INTO release_group (id, gid, name, artist_credit, type, comment, edits_pending)
