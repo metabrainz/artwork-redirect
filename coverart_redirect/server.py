@@ -27,8 +27,9 @@ import sys
 import traceback
 import cherrypy
 import sqlalchemy
-import werkzeug.wrappers
 import werkzeug.exceptions
+import werkzeug.urls
+import werkzeug.wrappers
 from cgi import parse_qs
 from contextlib import closing
 from coverart_redirect.config import Config
@@ -42,7 +43,7 @@ class Request (werkzeug.wrappers.Request):
             location = self.host_url + location[1:]
 
         response = werkzeug.wrappers.BaseResponse (
-            "see: %s\n" % location, code, mimetype='text/plain')
+            "See: %s\n" % location, code, mimetype='text/plain')
         response.headers['Location'] = werkzeug.urls.iri_to_uri (location)
         return response
 
@@ -59,7 +60,7 @@ class Server(object):
             with closing(self.engine.connect()) as conn:
                 response = CoverArtRedirect(self.config, conn).handle(request)
 
-            response.headers['Access-Control-Allow-Origin', '*']
+            response.headers.add ('Access-Control-Allow-Origin', '*')
             return response
         except werkzeug.exceptions.HTTPException, e:
             return e

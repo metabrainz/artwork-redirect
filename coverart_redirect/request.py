@@ -29,11 +29,9 @@ import cgi
 import urllib2
 import coverart_redirect
 from werkzeug.wrappers import Response
-from werkzeug.utils import pop_path_info
+from werkzeug.wsgi import pop_path_info
 from coverart_redirect.utils import statuscode
-from wsgiref.util import request_uri
-
-# FIXME: fix http status codes.
+from wsgiref.util import request_uri, shift_path_info
 
 class CoverArtRedirect(object):
     ''' Handles index and redirect requests '''
@@ -129,10 +127,10 @@ class CoverArtRedirect(object):
         txt = f.read()
         f.close()
 
-        return Response (response=txt)
+        return Response (response=txt, mimetype='text/html')
 
 
-    def handle_dir(self, request, entity, mbid, environ):
+    def handle_dir(self, request, entity, mbid):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
            index of what is in the bucket'''
 
@@ -156,7 +154,7 @@ class CoverArtRedirect(object):
     def handle(self, request):
         '''Handle a request, parse and validate arguments and dispatch the request'''
 
-        entity = pop_path_info(environ)
+        entity = pop_path_info(request.environ)
         if not entity:
             return self.handle_index()
 
@@ -164,7 +162,7 @@ class CoverArtRedirect(object):
             return Response (status=400, response=
                              "Only release entities are currently supported")
 
-        req_mbid = shift_path_info(environ)
+        req_mbid = shift_path_info(request.environ)
         if not req_mbid:
             return Response (status=400, response="no MBID specified.")
         if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', req_mbid):
@@ -175,9 +173,9 @@ class CoverArtRedirect(object):
             return Response (status=404, response=
                              "No %s found with identifier %s" % (entity, req_mbid))
 
-        filename = pop_path_info(environ)
+        filename = pop_path_info(request.environ)
         if not filename:
-            return self.handle_dir(entity, mbid, environ)
+            return self.handle_dir(request, entity, mbid)
 
         if filename.startswith ('front'):
             filename = self.resolve_cover (entity, mbid, 'Front', self.thumbnail (filename))

@@ -57,7 +57,7 @@ class All (unittest.TestCase):
 
     def verifyRedirect (self, src, dst):
         response = self.server.get (src)
-        self.assertEqual (response.status, b'307 Temporary Redirect')
+        self.assertEqual (response.status, b'307 TEMPORARY REDIRECT')
         self.assertEqual (response.headers['Location'], dst)
         self.assertEqual (response.data, b"See: %s\n" % (dst))
 
@@ -75,7 +75,7 @@ class All (unittest.TestCase):
     def test_front (self):
 
         response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/front')
-        self.assertEqual (response.status, b'404 Not Found')
+        self.assertEqual (response.status, b'404 NOT FOUND')
         self.assertTrue (response.data.startswith (b'No front cover image found for'))
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-100000001'
@@ -92,7 +92,7 @@ class All (unittest.TestCase):
     def test_back (self):
 
         response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/back')
-        self.assertEqual (response.status, b'404 Not Found')
+        self.assertEqual (response.status, b'404 NOT FOUND')
         self.assertTrue (response.data.startswith (b'No back cover image found for'))
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
@@ -109,7 +109,7 @@ class All (unittest.TestCase):
     def test_image (self):
 
         # response = self.server.get ('/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg')
-        # self.assertEqual (response.status, b'404 Not Found')
+        # self.assertEqual (response.status, b'404 NOT FOUND')
         # self.assertTrue (response.data.startswith (b'image 444444444 not found for'))
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
@@ -123,7 +123,7 @@ class All (unittest.TestCase):
     def test_release_index (self):
 
         # response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/')
-        # self.assertEqual (response.status, b'404 Not Found')
+        # self.assertEqual (response.status, b'404 NOT FOUND')
         # self.assertTrue (response.data.startswith (b'No cover art found for'))
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
