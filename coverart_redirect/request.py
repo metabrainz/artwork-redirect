@@ -28,6 +28,8 @@ import sys
 import cgi
 import urllib2
 import coverart_redirect
+from os.path import splitext
+from werkzeug.exceptions import NotFound
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import pop_path_info
 from coverart_redirect.utils import statuscode
@@ -66,9 +68,10 @@ class CoverArtRedirect(object):
 
 
     def resolve_mbid (self, entity, mbid):
-        """Handle the GID redirect. Query the database to see if the given release has been
-           merged into another release. If so, return the redirected MBID, otherwise return
-           the original MBID. """
+        """ Handle the GID redirect. Query the database to see if the
+           given release has been merged into another release. If so,
+           return the redirected MBID, otherwise return the original
+           MBID. """
 
         schema = self.config.database.musicbrainz_schema
 
@@ -88,6 +91,31 @@ class CoverArtRedirect(object):
             return row[0];
 
         return mbid
+
+
+    def resolve_cover_index (self, entity, mbid):
+        """ Query the database to see if the given release has any
+        cover art entries, if not respond with a 404 to the
+        request. """
+
+        mbz = self.config.database.musicbrainz_schema
+        caa = self.config.database.coverart_schema
+
+        mbid = mbid.lower ()
+        query = """
+            SELECT release.gid
+              FROM """ + mbz + """.release
+              JOIN """ + caa + """.cover_art ON release = release.id
+             WHERE release.gid = %(mbid)s;
+        """
+
+        resultproxy = self.conn.execute (query, { "mbid": mbid })
+        row = resultproxy.fetchone ()
+        resultproxy.close ()
+        if row:
+            return row[0];
+
+        raise NotFound ("No cover art found for release %s" % (mbid))
 
 
     def resolve_cover(self, entity, mbid, type, thumbnail):
@@ -113,7 +141,42 @@ class CoverArtRedirect(object):
         if row:
             return unicode(row[0]) + thumbnail + u".jpg"
 
-        return None
+        typestr = type.lower ()
+        raise NotFound ("No %s cover image found for %s with identifier %s" % (
+            typestr, entity, mbid))
+
+
+    def resolve_image_id(self, entity, mbid, filename, thumbnail):
+        '''Get a cover image by image id.'''
+
+        mbz = self.config.database.musicbrainz_schema
+        caa = self.config.database.coverart_schema
+
+        query = """
+            SELECT cover_art.id
+              FROM """ + caa + """.cover_art
+              JOIN """ + mbz + """.release ON release = release.id
+             WHERE release.gid = %(mbid)s
+               AND cover_art.id = %(image_id)s
+          ORDER BY ordering ASC LIMIT 1;
+        """
+
+        possible_id = re.sub ("[^0-9].*", "", filename)
+
+        image_id = None
+        try:
+            image_id = int(possible_id)
+        except ValueError:
+            raise NotFound ("id %s is not a valid cover image id" % (name))
+
+        resultproxy = self.conn.execute (
+            query, { "mbid": mbid, "image_id": int(image_id) })
+        row = resultproxy.fetchone ()
+        resultproxy.close ()
+        if row:
+            return unicode(row[0]) + thumbnail + u".jpg"
+
+        raise NotFound ("cover image with id %s not found" % (image_id))
 
 
     def handle_index(self):
@@ -169,23 +232,17 @@ class CoverArtRedirect(object):
             return Response (status=400, response="invalid MBID specified.")
 
         mbid = self.resolve_mbid (entity, req_mbid)
-        if not mbid:
-            return Response (status=404, response=
-                             "No %s found with identifier %s" % (entity, req_mbid))
 
         filename = pop_path_info(request.environ)
         if not filename:
+            mbid = self.resolve_cover_index (entity, mbid)
             return self.handle_dir(request, entity, mbid)
 
         if filename.startswith ('front'):
             filename = self.resolve_cover (entity, mbid, 'Front', self.thumbnail (filename))
-            if not filename:
-                return Response(status=404, response=
-                                "No front cover image found for %s with identifier %s" % (entity, req_mbid))
         elif filename.startswith ('back'):
             filename = self.resolve_cover (entity, mbid, 'Back', self.thumbnail (filename))
-            if not filename:
-                return Response(status=404, response=
-                                "No back cover image found for %s with identifier %s" % (entity, req_mbid))
+        else:
+            filename = self.resolve_image_id (entity, mbid, filename, self.thumbnail (filename))
 
         return self.handle_redirect(request, entity, mbid, filename.encode('utf8'))

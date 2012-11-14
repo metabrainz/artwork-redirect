@@ -76,7 +76,7 @@ class All (unittest.TestCase):
 
         response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/front')
         self.assertEqual (response.status, b'404 NOT FOUND')
-        self.assertTrue (response.data.startswith (b'No front cover image found for'))
+        self.assertTrue (b'No front cover image found for' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-100000001'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
@@ -93,7 +93,7 @@ class All (unittest.TestCase):
 
         response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/back')
         self.assertEqual (response.status, b'404 NOT FOUND')
-        self.assertTrue (response.data.startswith (b'No back cover image found for'))
+        self.assertTrue (b'No back cover image found for' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
@@ -108,9 +108,9 @@ class All (unittest.TestCase):
 
     def test_image (self):
 
-        # response = self.server.get ('/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg')
-        # self.assertEqual (response.status, b'404 NOT FOUND')
-        # self.assertTrue (response.data.startswith (b'image 444444444 not found for'))
+        response = self.server.get ('/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg')
+        self.assertEqual (response.status, b'404 NOT FOUND')
+        self.assertTrue (b'cover image with id 444444444 not found' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/999999999'
@@ -122,9 +122,9 @@ class All (unittest.TestCase):
 
     def test_release_index (self):
 
-        # response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/')
-        # self.assertEqual (response.status, b'404 NOT FOUND')
-        # self.assertTrue (response.data.startswith (b'No cover art found for'))
+        response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/')
+        self.assertEqual (response.status, b'404 NOT FOUND')
+        self.assertTrue (b'No cover art found for' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
