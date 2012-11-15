@@ -55,8 +55,8 @@ class All (unittest.TestCase):
         self.server = Client (app, Response)
 
 
-    def verifyRedirect (self, src, dst):
-        response = self.server.get (src)
+    def verifyRedirect (self, src, dst, **kwargs):
+        response = self.server.get (src, **kwargs)
         self.assertEqual (response.status, b'307 TEMPORARY REDIRECT')
         self.assertEqual (response.headers['Location'], dst)
         self.assertEqual (response.data, b"See: %s\n" % (dst))
@@ -130,3 +130,31 @@ class All (unittest.TestCase):
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
 
         self.verifyRedirect (req + '/', expected + '/index.json')
+
+
+    def test_direct_https (self):
+
+        expected = 'https://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
+        expimg = expected + '/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-'
+        req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
+
+        kw = { 'base_url': 'https://coverartarchive.org' }
+
+        self.verifyRedirect (req + '/', expected + '/index.json', **kw)
+        self.verifyRedirect (req + '/front', expimg + '100000001.jpg', **kw)
+        self.verifyRedirect (req + '/999999999.jpg', expimg + '999999999.jpg', **kw)
+
+
+    def test_proxied_https (self):
+
+        expected = 'https://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
+        expimg = expected + '/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-'
+        req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
+
+        kw = { 'headers': [('X-Forwarded-Proto', 'https')] }
+
+        self.verifyRedirect (req + '/', expected + '/index.json', **kw)
+        self.verifyRedirect (req + '/front', expimg + '100000001.jpg', **kw)
+        self.verifyRedirect (req + '/999999999.jpg', expimg + '999999999.jpg', **kw)
+
+

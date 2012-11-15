@@ -71,9 +71,9 @@ class Config(object):
         parser.read(path)
         self.database = DatabaseConfig()
         if test:
-            self.database.read(parser, 'database')
-        else:
             self.database.read(parser, 'testdatabase')
+        else:
+            self.database.read(parser, 'database')
         self.listen = ListenConfig()
         self.listen.read(parser, 'listen')
         self.s3 = S3Config()

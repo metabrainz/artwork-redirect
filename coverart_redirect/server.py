@@ -39,7 +39,13 @@ from coverart_redirect.request import CoverArtRedirect
 class Request (werkzeug.wrappers.Request):
 
     def redirect (self, location, code=302):
-        if location.startswith ("/"):
+
+        if self.headers.get ('X-Forwarded-Proto') == 'https':
+            self.environ['wsgi.url_scheme'] = 'https'
+
+        if location.startswith ("//"):
+            location = self.environ['wsgi.url_scheme'] + ':' + location
+        elif location.startswith ("/"):
             location = self.host_url + location[1:]
 
         response = werkzeug.wrappers.BaseResponse (
