@@ -59,20 +59,23 @@ class CoverArtRedirect(object):
             return ""
 
 
+
     def resolve_mbid (self, entity, mbid):
         """ Handle the GID redirect. Query the database to see if the
            given release has been merged into another release. If so,
            return the redirected MBID, otherwise return the original
            MBID. """
 
+        entity = entity.replace ("-", "_")
         mbid = mbid.lower ()
+
         query = """
-            SELECT release.gid
-              FROM musicbrainz.release
-              JOIN musicbrainz.release_gid_redirect
-                ON release_gid_redirect.new_id = release.id
-             WHERE release_gid_redirect.gid = %(mbid)s;
-        """
+            SELECT %(entity)s.gid
+              FROM musicbrainz.%(entity)s
+              JOIN musicbrainz.%(entity)s_gid_redirect
+                ON %(entity)s_gid_redirect.new_id = %(entity)s.id
+             WHERE %(entity)s_gid_redirect.gid = %(mbid)s
+        """ % ({ "entity": entity, "mbid": "%(mbid)s" })
 
         resultproxy = self.conn.execute (query, { "mbid": mbid })
         row = resultproxy.fetchone ()
@@ -83,7 +86,7 @@ class CoverArtRedirect(object):
         return mbid
 
 
-    def resolve_cover_index (self, entity, mbid):
+    def resolve_cover_index (self, mbid):
         """ Query the database to see if the given release has any
         cover art entries, if not respond with a 404 to the
         request. """
@@ -105,7 +108,40 @@ class CoverArtRedirect(object):
         raise NotFound ("No cover art found for release %s" % (mbid))
 
 
-    def resolve_cover(self, entity, mbid, type, thumbnail):
+    def resolve_release_group_cover_art (self, mbid):
+        """ This gets the selected front cover art for a release
+        group, or picks the earliest front cover art available.  It
+        takes a release group GID and returns a release GID -- if the
+        release has front cover art.  Otherwise it raises a 404
+        NotFound exception. """
+
+        mbid = mbid.lower ()
+        query = """
+            SELECT DISTINCT ON (release.release_group)
+                   musicbrainz.release.gid AS mbid
+              FROM cover_art_archive.index_listing
+              JOIN musicbrainz.release
+                ON musicbrainz.release.id = cover_art_archive.index_listing.release
+   FULL OUTER JOIN cover_art_archive.release_group_cover_art
+                ON release_group_cover_art.release = musicbrainz.release.id
+              JOIN musicbrainz.release_group
+                ON musicbrainz.release_group.id = musicbrainz.release.release_group
+             WHERE release_group.gid = %(mbid)s
+               AND is_front = true
+          ORDER BY release.release_group, release_group_cover_art.release,
+                   release.date_year, release.date_month, release.date_day;
+        """
+
+        resultproxy = self.conn.execute (query, { "mbid": mbid })
+        row = resultproxy.fetchone ()
+        resultproxy.close ()
+        if row:
+            return row[0];
+
+        raise NotFound ("No cover art found for release group %s" % (mbid))
+
+
+    def resolve_cover(self, mbid, type, thumbnail):
         '''Get the frontiest or backiest cover image.'''
 
         query = """
@@ -126,11 +162,11 @@ class CoverArtRedirect(object):
             return unicode(row[0]) + thumbnail + u".jpg"
 
         typestr = type.lower ()
-        raise NotFound ("No %s cover image found for %s with identifier %s" % (
-            typestr, entity, mbid))
+        raise NotFound ("No %s cover image found for release with identifier %s" % (
+            typestr, mbid))
 
 
-    def resolve_image_id(self, entity, mbid, filename, thumbnail):
+    def resolve_image_id(self, mbid, filename, thumbnail):
         '''Get a cover image by image id.'''
 
         query = """
@@ -174,7 +210,7 @@ class CoverArtRedirect(object):
         return Response (response=txt, mimetype='text/html')
 
 
-    def handle_dir(self, request, entity, mbid):
+    def handle_dir(self, request, mbid):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
            index of what is in the bucket'''
 
@@ -182,7 +218,37 @@ class CoverArtRedirect(object):
         return request.redirect (code=307, location=index_url)
 
 
-    def handle_redirect(self, request, entity, mbid, filename):
+    def handle_release (self, request, mbid, filename):
+        if not filename:
+            mbid = self.resolve_cover_index (mbid)
+            return self.handle_dir(request, mbid)
+
+        if filename.startswith ('front'):
+            filename = self.resolve_cover (mbid, 'Front', self.thumbnail (filename))
+        elif filename.startswith ('back'):
+            filename = self.resolve_cover (mbid, 'Back', self.thumbnail (filename))
+        else:
+            filename = self.resolve_image_id (
+                mbid, filename, self.thumbnail (filename))
+
+        return self.handle_redirect(request, mbid, filename.encode('utf8'))
+
+
+    def handle_release_group (self, request, mbid, filename):
+        release_mbid = self.resolve_release_group_cover_art (mbid)
+        if not filename:
+            return self.handle_dir (request, release_mbid)
+        elif filename.startswith ('front'):
+            filename = self.resolve_cover (
+                release_mbid, 'Front', self.thumbnail (filename))
+            return self.handle_redirect (
+                request, release_mbid, filename.encode('utf8'))
+        else:
+            return Response(status=400, response=
+                            "%s not supported for release groups." % (filename))
+
+
+    def handle_redirect(self, request, mbid, filename):
         """ Handle the 307 redirect. """
 
         if not filename:
@@ -202,9 +268,10 @@ class CoverArtRedirect(object):
         if not entity:
             return self.handle_index()
 
-        if entity != 'release':
-            return Response (status=400, response=
-                             "Only release entities are currently supported")
+        if entity not in [ 'release', 'release-group' ]:
+            return Response (
+                status=400, response=
+                "Only release and release-group entities are currently supported")
 
         req_mbid = shift_path_info(request.environ)
         if not req_mbid:
@@ -213,17 +280,9 @@ class CoverArtRedirect(object):
             return Response (status=400, response="invalid MBID specified.")
 
         mbid = self.resolve_mbid (entity, req_mbid)
-
         filename = pop_path_info(request.environ)
-        if not filename:
-            mbid = self.resolve_cover_index (entity, mbid)
-            return self.handle_dir(request, entity, mbid)
 
-        if filename.startswith ('front'):
-            filename = self.resolve_cover (entity, mbid, 'Front', self.thumbnail (filename))
-        elif filename.startswith ('back'):
-            filename = self.resolve_cover (entity, mbid, 'Back', self.thumbnail (filename))
+        if entity == 'release-group':
+            return self.handle_release_group (request, mbid, filename)
         else:
-            filename = self.resolve_image_id (entity, mbid, filename, self.thumbnail (filename))
-
-        return self.handle_redirect(request, entity, mbid, filename.encode('utf8'))
+            return self.handle_release (request, mbid, filename)

@@ -158,3 +158,27 @@ class All (unittest.TestCase):
         self.verifyRedirect (req + '/999999999.jpg', expimg + '999999999.jpg', **kw)
 
 
+    def test_release_group (self):
+
+        response = self.server.get ('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924')
+        self.assertEqual (response.status, b'404 NOT FOUND')
+        self.assertTrue (b'No cover art found for release group' in response.data)
+
+        response = self.server.get ('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924/front')
+        self.assertEqual (response.status, b'404 NOT FOUND')
+        self.assertTrue (b'No cover art found for release group' in response.data)
+
+        expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-100000001'
+        req = '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b'
+
+        self.verifyRedirect (req + '/front',         expected + '.jpg')
+        self.verifyRedirect (req + '/front.jpg',     expected + '.jpg')
+        self.verifyRedirect (req + '/front-250',     expected + '_thumb250.jpg')
+        self.verifyRedirect (req + '/front-250.jpg', expected + '_thumb250.jpg')
+        self.verifyRedirect (req + '/front-500',     expected + '_thumb500.jpg')
+        self.verifyRedirect (req + '/front-500.jpg', expected + '_thumb500.jpg')
+
+        expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
+
+        self.verifyRedirect (req,       expected + '/index.json')
+        self.verifyRedirect (req + '/', expected + '/index.json')

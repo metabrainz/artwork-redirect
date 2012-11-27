@@ -23,10 +23,10 @@ INSERT INTO release_status (id, name) VALUES (1, 'Official');
 INSERT INTO release_name (id, name) VALUES (1, 'El dueño del sistema');
 INSERT INTO release_group (id, gid, name, artist_credit, type, comment, edits_pending)
     VALUES (1, '67a63246-0de4-4cd8-8ce2-35f70a17f92b', 1, 1, 1, '', 0);
-INSERT INTO release (id, gid, name, artist_credit, release_group)
-    VALUES (1, '353710ec-1509-4df9-8ce2-9bd5011e3b80', 1, 1, 1);
-INSERT INTO release (id, gid, name, artist_credit, release_group)
-    VALUES (2, '98f08de3-c91c-4180-a961-06c205e63669', 1, 1, 1);
+INSERT INTO release (id, gid, name, artist_credit, release_group, date_year)
+    VALUES (1, '353710ec-1509-4df9-8ce2-9bd5011e3b80', 1, 1, 1, 2012);
+INSERT INTO release (id, gid, name, artist_credit, release_group, date_year)
+    VALUES (2, '98f08de3-c91c-4180-a961-06c205e63669', 1, 1, 1, 1976);
 
 INSERT INTO editor (id, name, password) VALUES (1, 'kuno', 'topsecret');
 
