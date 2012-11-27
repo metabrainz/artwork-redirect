@@ -44,14 +44,6 @@ class CoverArtRedirect(object):
         self.cmd = None
         self.proto = None
 
-        if not self.config.database.musicbrainz_schema:
-            print "please configure musicbrainz database schema"
-            sys.exit (1)
-
-        if not self.config.database.coverart_schema:
-            print "please configure cover art archive database schema"
-            sys.exit (1)
-
 
     def thumbnail (self, filename):
         if not '-' in filename:
@@ -73,13 +65,11 @@ class CoverArtRedirect(object):
            return the redirected MBID, otherwise return the original
            MBID. """
 
-        schema = self.config.database.musicbrainz_schema
-
         mbid = mbid.lower ()
         query = """
             SELECT release.gid
-              FROM """ + schema + """.release
-              JOIN """ + schema + """.release_gid_redirect
+              FROM musicbrainz.release
+              JOIN musicbrainz.release_gid_redirect
                 ON release_gid_redirect.new_id = release.id
              WHERE release_gid_redirect.gid = %(mbid)s;
         """
@@ -98,14 +88,11 @@ class CoverArtRedirect(object):
         cover art entries, if not respond with a 404 to the
         request. """
 
-        mbz = self.config.database.musicbrainz_schema
-        caa = self.config.database.coverart_schema
-
         mbid = mbid.lower ()
         query = """
             SELECT release.gid
-              FROM """ + mbz + """.release
-              JOIN """ + caa + """.cover_art ON release = release.id
+              FROM musicbrainz.release
+              JOIN cover_art_archive.cover_art ON release = release.id
              WHERE release.gid = %(mbid)s;
         """
 
@@ -121,15 +108,12 @@ class CoverArtRedirect(object):
     def resolve_cover(self, entity, mbid, type, thumbnail):
         '''Get the frontiest or backiest cover image.'''
 
-        mbz = self.config.database.musicbrainz_schema
-        caa = self.config.database.coverart_schema
-
         query = """
             SELECT cover_art.id
-              FROM """ + caa + """.cover_art
-              JOIN """ + mbz + """.release ON release = release.id
-              JOIN """ + caa + """.cover_art_type ON cover_art.id = cover_art_type.id
-              JOIN """ + caa + """.art_type ON cover_art_type.type_id = art_type.id
+              FROM cover_art_archive.cover_art
+              JOIN musicbrainz.release ON release = release.id
+              JOIN cover_art_archive.cover_art_type ON cover_art.id = cover_art_type.id
+              JOIN cover_art_archive.art_type ON cover_art_type.type_id = art_type.id
              WHERE release.gid = %(mbid)s
                AND art_type.name = %(type)s
           ORDER BY ordering ASC LIMIT 1;
@@ -149,13 +133,10 @@ class CoverArtRedirect(object):
     def resolve_image_id(self, entity, mbid, filename, thumbnail):
         '''Get a cover image by image id.'''
 
-        mbz = self.config.database.musicbrainz_schema
-        caa = self.config.database.coverart_schema
-
         query = """
             SELECT cover_art.id
-              FROM """ + caa + """.cover_art
-              JOIN """ + mbz + """.release ON release = release.id
+              FROM cover_art_archive.cover_art
+              JOIN musicbrainz.release ON release = release.id
              WHERE release.gid = %(mbid)s
                AND cover_art.id = %(image_id)s
           ORDER BY ordering ASC LIMIT 1;
