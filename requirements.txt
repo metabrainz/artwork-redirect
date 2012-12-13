@@ -1,5 +1,5 @@
 cherrypy == 3.1.2
 nose >= 1.2.0
-psycopg2 >= 2.0.13
+psycopg2 == 2.0.13
 sqlalchemy == 0.5.8
 werkzeug >= 0.8
