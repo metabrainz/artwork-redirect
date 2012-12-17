@@ -49,8 +49,8 @@ h1 {
     <h1>Cover Art Archive</h1>
 
     <div id="images">
-        <a href="http://archive.org"><img id="ia_logo" src="http://www.archive.org/images/glogo.png"></a>
-        <a href="http://musicbrainz.org"><img id="mb_logo" src="http://wiki.musicbrainz.org/-/images/3/3d/Musicbrainz_logo.png"></a>
+        <a href="http://archive.org"><img id="ia_logo" src="//www.archive.org/images/glogo.png"></a>
+        <a href="http://musicbrainz.org"><img id="mb_logo" src="//wiki.musicbrainz.org/-/images/3/3d/Musicbrainz_logo.png"></a>
     </div>
 
     <div id="text">
