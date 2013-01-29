@@ -51,8 +51,7 @@ class CoverArtRedirect(object):
 
 
     def validate_mbid (self, mbid):
-        '''Check if an MBID is syntactically valid. If not, return a Response
-           object indicating what's wrong'''
+        '''Check if an MBID is syntactically valid. If not, raise a BadRequest'''
         if not mbid:
             raise BadRequest ('no MBID specified')
         if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', mbid):
