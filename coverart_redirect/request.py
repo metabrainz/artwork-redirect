@@ -29,7 +29,7 @@ import cgi
 import urllib2
 import coverart_redirect
 from os.path import splitext
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import BadRequest, NotImplemented, NotFound
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import pop_path_info
 from coverart_redirect.utils import statuscode
@@ -45,6 +45,20 @@ class CoverArtRedirect(object):
         self.proto = None
 
 
+    def validate_entity (self, entity):
+        if entity not in [ 'release', 'release-group']:
+            raise BadRequest ("Only release and release-group entities are currently supported")
+
+
+    def validate_mbid (self, mbid):
+        '''Check if an MBID is syntactically valid. If not, return a Response
+           object indicating what's wrong'''
+        if not mbid:
+            raise BadRequest ('no MBID specified')
+        if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', mbid):
+            raise BadRequest ('invalid MBID specified')
+
+
     def thumbnail (self, filename):
         if not '-' in filename:
             return ""
@@ -57,7 +71,6 @@ class CoverArtRedirect(object):
             return "-500"
         else:
             return ""
-
 
 
     def resolve_mbid (self, entity, mbid):
@@ -218,6 +231,46 @@ class CoverArtRedirect(object):
         return request.redirect (code=307, location=index_url)
 
 
+    def handle_options(self, request, entity):
+        '''Repond to OPTIONS requests with a status code of 200 and the allowed
+           request methods'''
+        if entity:
+            if not entity == '*':
+                self.validate_entity(entity)
+            elif pop_path_info(request.environ) is not None:
+                # There's more than a single asterisk in the request uri
+                raise BadRequest()
+            elif request.environ["SERVER_PROTOCOL"] != "HTTP/1.1":
+                # OPTIONS does not exist in HTTP/1.0
+                raise NotImplemented()
+            else:
+                return Response(status=200, headers=[("Allow", "GET, HEAD, OPTIONS")])
+
+            req_mbid = shift_path_info(request.environ)
+            self.validate_mbid(req_mbid)
+
+            image_id = shift_path_info(request.environ)
+
+            if image_id and image_id is not None:
+                image_id = splitext(image_id)[0]
+                _split = image_id.split('-')
+                if len(_split) > 0:
+                    id_text = _split[0]
+
+                try:
+                    int(id_text)
+                except ValueError:
+                    if id_text not in ('front', 'back'):
+                        raise BadRequest()
+
+                if len(_split) > 1:
+                    size = _split[1]
+                    if size not in ('250', '500'):
+                        raise BadRequest()
+
+        return Response(status=200, headers=[("Allow", "GET, HEAD, OPTIONS")])
+
+
     def handle_release (self, request, mbid, filename):
         if not filename:
             mbid = self.resolve_cover_index (mbid)
@@ -263,21 +316,18 @@ class CoverArtRedirect(object):
 
     def handle(self, request):
         '''Handle a request, parse and validate arguments and dispatch the request'''
-
         entity = pop_path_info(request.environ)
+
+        if request.method == "OPTIONS":
+            return self.handle_options(request, entity)
+
         if not entity:
             return self.handle_index()
 
-        if entity not in [ 'release', 'release-group' ]:
-            return Response (
-                status=400, response=
-                "Only release and release-group entities are currently supported")
+        self.validate_entity(entity)
 
         req_mbid = shift_path_info(request.environ)
-        if not req_mbid:
-            return Response (status=400, response="no MBID specified.")
-        if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', req_mbid):
-            return Response (status=400, response="invalid MBID specified.")
+        self.validate_mbid(req_mbid)
 
         mbid = self.resolve_mbid (entity, req_mbid)
         filename = pop_path_info(request.environ)

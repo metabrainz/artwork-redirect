@@ -31,7 +31,7 @@ from contextlib import closing
 from coverart_redirect_server import load_config
 from coverart_redirect.server import Server
 from werkzeug.wrappers import Response
-from werkzeug.test import Client
+from werkzeug.test import Client, EnvironBuilder
 
 _root = dirname (dirname (abspath (__file__)))
 
@@ -182,3 +182,52 @@ class All (unittest.TestCase):
 
         self.verifyRedirect (req,       expected + '/index.json')
         self.verifyRedirect (req + '/', expected + '/index.json')
+
+
+    def test_options_method (self):
+        for path in [
+                '/',
+                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/999999999',
+                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front',
+                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/back',
+                '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b',
+                '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b/front',
+                # 404s
+                '/release/98f08de3-c91c-4180-a961-06c205e63669/',
+                '/release/98f08de3-c91c-4180-a961-06c205e63669/front',
+                '/release/98f08de3-c91c-4180-a961-06c205e63669/back',
+                '/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924',
+                '/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924/front',
+                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg',
+                ]:
+            response = self.server.open(path=path,
+                                        method='OPTIONS')
+            self.assertEqual (response.status, b'200 OK')
+            self.assertTrue ('Allow' in response.headers)
+
+        for path in [
+                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/foo'
+                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front-100'
+                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/-250'
+                ]:
+            response = self.server.open(path=path,
+                                        method='OPTIONS')
+            self.assertEqual (response.status, b'400 BAD REQUEST')
+
+
+    def test_options_method_asterisk (self):
+        response = self.server.open(path='/*',
+                                    method='OPTIONS')
+        self.assertEqual (response.status, b'200 OK')
+        self.assertTrue ('Allow' in response.headers)
+
+        response = self.server.open(path='/*foo',
+                                    method='OPTIONS')
+        self.assertEqual (response.status, b'400 BAD REQUEST')
+
+
+    def test_options_501_on_http_10 (self):
+        env = EnvironBuilder(path='/*', method='OPTIONS')
+        env.server_protocol = 'HTTP/1.0'
+        response = self.server.open(env)
+        self.assertEqual (response.status, b'501 NOT IMPLEMENTED')
