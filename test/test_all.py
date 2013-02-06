@@ -227,7 +227,7 @@ class All (unittest.TestCase):
 
 
     def test_options_501_on_http_10 (self):
-        env = EnvironBuilder(path='/*', method='OPTIONS')
+        env = EnvironBuilder(path='/*foo', method='OPTIONS')
         env.server_protocol = 'HTTP/1.0'
         response = self.server.open(env)
         self.assertEqual (response.status, b'501 NOT IMPLEMENTED')

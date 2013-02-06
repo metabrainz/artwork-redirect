@@ -233,15 +233,15 @@ class CoverArtRedirect(object):
     def handle_options(self, request, entity):
         '''Repond to OPTIONS requests with a status code of 200 and the allowed
            request methods'''
+        if request.environ["SERVER_PROTOCOL"] != "HTTP/1.1":
+            # OPTIONS does not exist in HTTP/1.0
+            raise NotImplemented()
         if entity:
             if not entity == '*':
                 self.validate_entity(entity)
             elif pop_path_info(request.environ) is not None:
                 # There's more than a single asterisk in the request uri
                 raise BadRequest()
-            elif request.environ["SERVER_PROTOCOL"] != "HTTP/1.1":
-                # OPTIONS does not exist in HTTP/1.0
-                raise NotImplemented()
             else:
                 return Response(status=200, headers=[("Allow", "GET, HEAD, OPTIONS")])
 
