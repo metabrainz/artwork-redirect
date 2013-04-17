@@ -120,6 +120,12 @@ class All (unittest.TestCase):
         self.verifyRedirect (req + '-500.jpg', expected + '_thumb500.jpg')
 
 
+    def test_resolve_image_id_with_invalid_cover_image_id (self):
+        _id = "invalid"
+        response = self.server.get("release/353710ec-1509-4df9-8ce2-9bd5011e3b80/" + _id)
+        self.assertEqual (response.status, b'400 BAD REQUEST')
+
+
     def test_release_index (self):
 
         response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/')

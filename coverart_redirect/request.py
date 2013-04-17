@@ -196,10 +196,10 @@ class CoverArtRedirect(object):
         try:
             image_id = int(possible_id)
         except ValueError:
-            raise NotFound ("id %s is not a valid cover image id" % (name))
+            raise BadRequest ("%s does not not contain a valid cover image id" % (filename))
 
         resultproxy = self.conn.execute (
-            query, { "mbid": mbid, "image_id": int(image_id) })
+            query, { "mbid": mbid, "image_id": image_id})
         row = resultproxy.fetchone ()
         resultproxy.close ()
         if row:
