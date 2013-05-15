@@ -138,8 +138,6 @@ class CoverArtRedirect(object):
                 ON release_group_cover_art.release = musicbrainz.release.id
               JOIN musicbrainz.release_group
                 ON musicbrainz.release_group.id = musicbrainz.release.release_group
-              JOIN musicbrainz.release_group_meta
-                ON musicbrainz.release_group_meta.id = musicbrainz.release_group.id
              WHERE release_group.gid = %(mbid)s
                AND is_front = true
           ORDER BY release.release_group, release_group_cover_art.release;
