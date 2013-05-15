@@ -140,8 +140,7 @@ class CoverArtRedirect(object):
                 ON musicbrainz.release_group.id = musicbrainz.release.release_group
              WHERE release_group.gid = %(mbid)s
                AND is_front = true
-          ORDER BY release.release_group, release_group_cover_art.release,
-                   release.date_year, release.date_month, release.date_day;
+          ORDER BY release.release_group, release_group_cover_art.release;
         """
 
         resultproxy = self.conn.execute (query, { "mbid": mbid })
