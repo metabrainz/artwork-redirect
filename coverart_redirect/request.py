@@ -156,11 +156,13 @@ class CoverArtRedirect(object):
         '''Get the frontiest or backiest cover image.'''
 
         query = """
-            SELECT cover_art.id
+            SELECT cover_art.id, suffix
               FROM cover_art_archive.cover_art
               JOIN musicbrainz.release ON release = release.id
               JOIN cover_art_archive.cover_art_type ON cover_art.id = cover_art_type.id
               JOIN cover_art_archive.art_type ON cover_art_type.type_id = art_type.id
+              JOIN cover_art_archive.image_type
+                ON cover_art.mime_type = image_type.mime_type
              WHERE release.gid = %(mbid)s
                AND art_type.name = %(type)s
           ORDER BY ordering ASC LIMIT 1;
@@ -170,7 +172,7 @@ class CoverArtRedirect(object):
         row = resultproxy.fetchone ()
         resultproxy.close ()
         if row:
-            return unicode(row[0]) + thumbnail + u".jpg"
+            return u"%s%s.%s" % (unicode(row[0]), thumbnail, row[1])
 
         typestr = type.lower ()
         raise NotFound ("No %s cover image found for release with identifier %s" % (
@@ -181,9 +183,12 @@ class CoverArtRedirect(object):
         '''Get a cover image by image id.'''
 
         query = """
-            SELECT cover_art.id
+            SELECT cover_art.id, suffix
               FROM cover_art_archive.cover_art
-              JOIN musicbrainz.release ON release = release.id
+              JOIN musicbrainz.release
+                ON release = release.id
+              JOIN cover_art_archive.image_type
+                ON cover_art.mime_type = image_type.mime_type
              WHERE release.gid = %(mbid)s
                AND cover_art.id = %(image_id)s
           ORDER BY ordering ASC LIMIT 1;
@@ -202,7 +207,7 @@ class CoverArtRedirect(object):
         row = resultproxy.fetchone ()
         resultproxy.close ()
         if row:
-            return unicode(row[0]) + thumbnail + u".jpg"
+            return u"%s%s.%s" % (unicode(row[0]), thumbnail, row[1])
 
         raise NotFound ("cover image with id %s not found" % (image_id))
 
