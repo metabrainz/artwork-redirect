@@ -225,6 +225,9 @@ class CoverArtRedirect(object):
 
         return Response (response=txt, mimetype='text/html')
 
+    def handle_robots(self):
+        '''Serve up a permissive robots.txt'''
+        return Response(response="User-agent: *\nAllow: /", mimetype='text/plain')
 
     def handle_dir(self, request, mbid):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
@@ -326,6 +329,8 @@ class CoverArtRedirect(object):
 
         if not entity:
             return self.handle_index()
+        if entity == 'robots.txt':
+            return self.handle_robots()
 
         self.validate_entity(entity)
 
