@@ -2,7 +2,10 @@ BEGIN;
 SET client_min_messages TO 'WARNING';
 SET search_path=cover_art_archive,musicbrainz;
 
+TRUNCATE TABLE artist CASCADE;
+TRUNCATE TABLE artist_credit CASCADE;
 TRUNCATE TABLE art_type CASCADE;
+TRUNCATE TABLE image_type CASCADE;
 TRUNCATE TABLE editor CASCADE;
 TRUNCATE TABLE release_group_primary_type CASCADE;
 TRUNCATE TABLE release_status CASCADE;

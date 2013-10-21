@@ -129,18 +129,27 @@ class CoverArtRedirect(object):
 
         mbid = mbid.lower ()
         query = """
-            SELECT DISTINCT ON (release.release_group)
-                   musicbrainz.release.gid AS mbid
-              FROM cover_art_archive.index_listing
-              JOIN musicbrainz.release
-                ON musicbrainz.release.id = cover_art_archive.index_listing.release
-   FULL OUTER JOIN cover_art_archive.release_group_cover_art
-                ON release_group_cover_art.release = musicbrainz.release.id
-              JOIN musicbrainz.release_group
-                ON musicbrainz.release_group.id = musicbrainz.release.release_group
-             WHERE release_group.gid = %(mbid)s
-               AND is_front = true
-          ORDER BY release.release_group, release_group_cover_art.release;
+        SELECT DISTINCT ON (release.release_group)
+          release.gid AS mbid
+        FROM cover_art_archive.index_listing
+        JOIN musicbrainz.release
+          ON musicbrainz.release.id = cover_art_archive.index_listing.release
+        JOIN musicbrainz.release_group
+          ON release_group.id = release.release_group
+        LEFT JOIN (
+          SELECT release, date_year, date_month, date_day
+          FROM release_country
+          UNION ALL
+          SELECT release, date_year, date_month, date_day
+          FROM release_unknown_country
+        ) release_event ON (release_event.release = release.id)
+        FULL OUTER JOIN cover_art_archive.release_group_cover_art
+        ON release_group_cover_art.release = musicbrainz.release.id
+        WHERE release_group.gid = %(mbid)s
+        AND is_front = true
+        ORDER BY release.release_group, release_group_cover_art.release,
+          release_event.date_year, release_event.date_month,
+          release_event.date_day
         """
 
         resultproxy = self.conn.execute (query, { "mbid": mbid })
