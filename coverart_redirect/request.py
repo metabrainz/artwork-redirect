@@ -164,28 +164,34 @@ class CoverArtRedirect(object):
     def resolve_cover(self, mbid, type, thumbnail):
         '''Get the frontiest or backiest cover image.'''
 
+        if type == "Front":
+            type_filter = "is_front = true"
+        elif type == "Back":
+            type_filter = "is_back = true"
+        else:
+            raise NotFound ("No %s cover image found for release with identifier %s" % (
+                type.lower(), mbid))
+
         query = """
-            SELECT cover_art.id, suffix
-              FROM cover_art_archive.cover_art
-              JOIN musicbrainz.release ON release = release.id
-              JOIN cover_art_archive.cover_art_type ON cover_art.id = cover_art_type.id
-              JOIN cover_art_archive.art_type ON cover_art_type.type_id = art_type.id
+            SELECT index_listing.id, image_type.suffix
+              FROM cover_art_archive.index_listing
+              JOIN musicbrainz.release
+                ON cover_art_archive.index_listing.release = musicbrainz.release.id
               JOIN cover_art_archive.image_type
-                ON cover_art.mime_type = image_type.mime_type
-             WHERE release.gid = %(mbid)s
-               AND art_type.name = %(type)s
+                ON cover_art_archive.index_listing.mime_type = cover_art_archive.image_type.mime_type
+             WHERE musicbrainz.release.gid = %(mbid)s
+               AND """ + type_filter + """
           ORDER BY ordering ASC LIMIT 1;
         """
 
-        resultproxy = self.conn.execute (query, { "mbid": mbid, "type": type })
-        row = resultproxy.fetchone ()
-        resultproxy.close ()
+        resultproxy = self.conn.execute(query, { "mbid": mbid, "type": type })
+        row = resultproxy.fetchone()
+        resultproxy.close()
         if row:
             return u"%s%s.%s" % (unicode(row[0]), thumbnail, row[1])
 
-        typestr = type.lower ()
         raise NotFound ("No %s cover image found for release with identifier %s" % (
-            typestr, mbid))
+            type.lower(), mbid))
 
 
     def resolve_image_id(self, mbid, filename, thumbnail):
