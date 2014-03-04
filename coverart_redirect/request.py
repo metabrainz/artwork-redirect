@@ -184,7 +184,7 @@ class CoverArtRedirect(object):
           ORDER BY ordering ASC LIMIT 1;
         """
 
-        resultproxy = self.conn.execute(query, { "mbid": mbid, "type": type })
+        resultproxy = self.conn.execute(query, { "mbid": mbid })
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
