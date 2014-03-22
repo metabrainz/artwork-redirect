@@ -73,7 +73,7 @@ h1 {
         MusicBrainz also provides <a href="http://musicbrainz.org/doc/Cover_Art_Archive/API">API documentation</a>
         for retrieving cover art via a <a href="http://musicbrainz.org/doc/MBID">release MBID</a>. A C based
         client library <a href="https://github.com/metabrainz/libcoverart">libcoverart</a> is available as well
-        as the Java <a href="https://github.com/lastfm/coverartarchive-api">coverartarchve-api</a> library. 
+        as the Java <a href="https://github.com/lastfm/coverartarchive-api">coverartarchive-api</a> library. 
         </p>
 
         <p>
