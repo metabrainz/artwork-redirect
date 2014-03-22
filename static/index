@@ -65,7 +65,7 @@ h1 {
         to ensure that they are correct, free of spam and of the best quality. If you would like to
         contribute cover art, <a href="http://musicbrainz.org/register">create a MusicBrainz account</a>
         and <a href="http://musicbrainz.org/doc/How_to_Add_Cover_Art">follow the guide</a>. To see what
-        has been added to the archive recently, please see the <a href="http://archive.org/details/coverartarchive">Cover 
+        has been added to the archive recently, please see the <a href="http://archive.org/details/coverartarchive">Cover
         Art Archive page</a> at the Internet Archive.
         </p>
 
@@ -73,7 +73,7 @@ h1 {
         MusicBrainz also provides <a href="http://musicbrainz.org/doc/Cover_Art_Archive/API">API documentation</a>
         for retrieving cover art via a <a href="http://musicbrainz.org/doc/MBID">release MBID</a>. A C based
         client library <a href="https://github.com/metabrainz/libcoverart">libcoverart</a> is available as well
-        as the Java <a href="https://github.com/lastfm/coverartarchive-api">coverartarchive-api</a> library. 
+        as the Java <a href="https://github.com/lastfm/coverartarchive-api">coverartarchive-api</a> library.
         </p>
 
         <p>
