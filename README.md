@@ -35,7 +35,7 @@ On Ubuntu you can install these with the following command:
 
 As we are currently running this service on Ubuntu 10.04 LTS,
 requirements.txt has been pinned at the versions shipped with that
-version of ubuntu.  If you want to run/develop/test against those
+version of Ubuntu.  If you want to run/develop/test against those
 exact versions on a more recent Ubuntu or on a different GNU/Linux
 distribution or a different operating system, use virtualenv:
 
@@ -66,7 +66,7 @@ Running the tests
 
 I use nose as a test runner, though other test runners may work.
 
-To install nose on ubuntu:
+To install nose on Ubuntu:
 
     sudo apt-get install python-nose
 
