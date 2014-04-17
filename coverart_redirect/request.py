@@ -328,8 +328,8 @@ class CoverArtRedirect(object):
         if not filename:
             return [statuscode (400), "no filename specified"]
 
-        filename = re.sub("-250.(jpg|gif|png)", "_thumb250.jpg", filename)
-        filename = re.sub("-500.(jpg|gif|png)", "_thumb500.jpg", filename)
+        filename = re.sub("-250.(jpg|gif|png|pdf)", "_thumb250.jpg", filename)
+        filename = re.sub("-500.(jpg|gif|png|pdf)", "_thumb500.jpg", filename)
 
         url = "%s/mbid-%s/mbid-%s-%s" % (self.config.s3.prefix, mbid, mbid, filename)
         return request.redirect (code=307, location=url)
