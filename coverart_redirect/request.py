@@ -244,6 +244,10 @@ class CoverArtRedirect(object):
         '''Serve up a permissive robots.txt'''
         return Response(response="User-agent: *\nAllow: /", mimetype='text/plain')
 
+    def handle_api(self):
+        '''Redirect to API docs at musicbrainz.org'''
+        return request.redirect (code=301, location='https://musicbrainz.org/doc/Cover_Art_Archive/API')
+
     def handle_dir(self, request, mbid):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
            index of what is in the bucket'''
@@ -346,6 +350,8 @@ class CoverArtRedirect(object):
             return self.handle_index()
         if entity == 'robots.txt':
             return self.handle_robots()
+        if entity == 'api':
+            return self.handle_api()
 
         self.validate_entity(entity)
 
