@@ -35,6 +35,7 @@ from contextlib import closing
 from coverart_redirect.config import Config
 from coverart_redirect.utils import LocalSysLogHandler, statuscode
 from coverart_redirect.request import CoverArtRedirect
+from coverart_redirect.rate_limit import RateLimiter
 
 class Request (werkzeug.wrappers.Request):
 
@@ -59,9 +60,14 @@ class Server(object):
     def __init__(self, config):
         self.config = config
         self.engine = sqlalchemy.create_engine(self.config.database.create_url())
+        self.rate_limiter = RateLimiter(config)
 
     @Request.application
     def __call__(self, request):
+        rate_limiter_response = self.rate_limiter.check_rate_limit('frontend ip=%s' % request.remote_addr);
+        if rate_limiter_response:
+            return rate_limiter_response
+
         try:
             with closing(self.engine.connect()) as conn:
                 response = CoverArtRedirect(self.config, conn).handle(request)
