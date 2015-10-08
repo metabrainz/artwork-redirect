@@ -64,7 +64,7 @@ class Server(object):
 
     @Request.application
     def __call__(self, request):
-        rate_limiter_response = self.rate_limiter.check_rate_limit('frontend ip=%s' % request.remote_addr);
+        rate_limiter_response = self.rate_limiter.check_rate_limit('caa ip=%s' % request.remote_addr);
         if rate_limiter_response:
             return rate_limiter_response
 
