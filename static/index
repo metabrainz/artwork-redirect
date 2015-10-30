@@ -14,7 +14,6 @@
     <nav class="navbar navbar-default navbar-static-top" role="navigation">
       <div class="container">
 
-        {#- Brand and toggle get grouped for better mobile display -#}
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#ab-navbar-collapse">
             <span class="sr-only">Toggle navigation</span>
@@ -25,7 +24,6 @@
           <img src="/static/img/navbar_logo.svg" alt="Cover Art Archive" />
         </div>
 
-        {#- Collect the nav links, forms, and other content for toggling -#}
         <div class="collapse navbar-collapse" id="ab-navbar-collapse">
           <ul class="nav navbar-nav">
             <li><a href="https://musicbrainz.org/doc/Cover_Art_Archive/API">API Docs</a></li>
