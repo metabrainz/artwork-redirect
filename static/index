@@ -1,51 +1,41 @@
+<!DOCTYPE html>
 <html>
 <head>
-<title>Cover Art Archive</title>
-<style type="text/css">
-<!--
-*{
-  margin: 0;
-  padding: 0;
-}
-body{
-    background: #736DAB;
-    margin: 2em 6em 2em 6em;
-    font-size: 14px;
-    font-family: Ariel, Helvetica;
-}
-a{
-    text-decoration: none;
-}
-p {
-    margin: 1em 0;
-}
-h1 {
-    margin: 0 0 0.5em;
-}
-#content{
-    padding: 2em;
-    background: white;
-    border-radius: 0.5em;
-    min-height: 248px;
-}
-#text{
-    margin-right: 160px;
-    margin-bottom: -1em;
-}
-#images{
-    float: right;
-    width: 140px;
-    text-align: center;
-}
-#images a {
-    display: block;
-    margin-bottom: 2em;
-}
--->
-</style>
+    <meta charset="utf-8" />
+    <title>Cover Art Archive</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="icon" sizes="32x32" href="/static/img/favicon.png') }}" type="image/png" />
+    <link href="/static/css/main.css" rel="stylesheet" media="screen" />
 </head>
+
 <body>
-<div id="content">
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container">
+
+        {#- Brand and toggle get grouped for better mobile display -#}
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#ab-navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <img src="/static/img/navbar_logo.svg" alt="Cover Art Archive" />
+        </div>
+
+        {#- Collect the nav links, forms, and other content for toggling -#}
+        <div class="collapse navbar-collapse" id="ab-navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="https://musicbrainz.org/doc/Cover_Art_Archive/API">API Docs</a></li>
+          </ul>
+        </div>
+
+      </div>
+    </nav>
+  <div class="container">
+
     <h1>Cover Art Archive</h1>
 
     <div id="images">
@@ -85,7 +75,21 @@ h1 {
         If you have any questions regarding the images in coverartarchive.org, please email info [at] archive [dot] org.
         </p>
     </div>
-</div>
 
+    <div class="clearfix"></div>
+
+    <hr />
+    <div class="footer clearfix">
+      <ul class="list-inline pull-left">
+        <li><a href="http://blog.musicbrainz.org/category/acousticbrainz/">Blog</a></li>
+        <li><a href="https://twitter.com/MusicBrainz">Twitter</a></li>
+        <li><a href="http://github.com/metabrainz/coverart-redirect/">GitHub</a></li>
+        <li><a href="http://tickets.musicbrainz.org/browse/CAA">Bug Tracker</a></li>
+      </ul>
+      <ul class="list-inline pull-right">
+        <li><a href="https://musicbrainz.org" title="MusicBrainz"><img src="/static/img/musicbrainz.svg" /></a></li>
+      </ul>
+    </div>
+  </div>
 </body>
 </html>

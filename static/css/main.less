@@ -1,0 +1,42 @@
+@import "theme/theme.less";
+
+@icon-font-path:"/static/fonts/";
+
+@pager-border-radius: @border-radius-base;
+
+body {
+  padding-bottom: 25px;
+}
+
+.table {
+  > thead > tr > th { border-bottom-width: 1px; }
+}
+.table-nonfluid {
+   width: auto !important;
+}
+
+.nav {
+  > li {
+    > a { color: @blue; }
+  }
+}
+
+.btn {
+  .glyphicon {
+    margin-right: 4px;
+  }
+}
+
+// Navbar
+@grid-float-breakpoint: @screen-md-min; // Point at which the navbar becomes uncollapsed
+.navbar {
+  @logo-width: 199px + 15px;
+  .navbar-variant(#20656C, @logo-width);
+  .navbar-form {
+    padding-right: 0px;
+    .btn {
+      background-color: @turquoise;
+      margin-right: 0px;
+    }
+  }
+}
