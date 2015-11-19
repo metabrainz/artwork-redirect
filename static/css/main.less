@@ -28,9 +28,8 @@ body {
 }
 
 // Navbar
-@grid-float-breakpoint: @screen-md-min; // Point at which the navbar becomes uncollapsed
 .navbar {
-  @logo-width: 199px + 15px;
+  @logo-width: 212px + 15px;
   .navbar-variant(#20656C, @logo-width);
   .navbar-form {
     padding-right: 0px;
@@ -38,5 +37,15 @@ body {
       background-color: @turquoise;
       margin-right: 0px;
     }
+  }
+}
+
+#images {
+  float: right;
+  width: 140px;
+  text-align: center;
+  img {
+    width: 100px;
+    margin-bottom: 10px;
   }
 }
