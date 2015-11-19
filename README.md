@@ -1,4 +1,4 @@
-Cover art archive URL redirect service
+Cover Art Archive URL redirect service
 ======================================
 
 This service will redirect from coverartarchive.org URLs to
@@ -14,8 +14,7 @@ should redirect to:
    http://archive.org/download/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a-2270157148.jpg
 
 
-Install
-=======
+## Install
 
 To install this service, you will need to have the following python
 packages installed:
@@ -26,8 +25,7 @@ Depending on your os version you can install them with the system
 package manager, or you may have to install them manually.
 
 
-Ubuntu 10.04 LTS or later
--------------------------
+### Ubuntu 10.04 LTS or later
 
 On Ubuntu you can install these with the following command:
 
@@ -43,8 +41,7 @@ distribution or a different operating system, use virtualenv:
     ~/path/to/virtualenv/bin/pip install -r requirements.txt
 
 
-Running the server
-------------------
+## Running the server
 
 CherryPy is used as the WSGI server. To deploy, simply copy
 coverart_redirect.conf.dist to coverart_redirect.conf, edit the
@@ -61,8 +58,7 @@ the server using python from the virtualenv directory:
     ~/path/to/virtualenv/bin/python coverart_redirect_server.py
 
 
-Running the tests
------------------
+## Running the tests
 
 I use nose as a test runner, though other test runners may work.
 
@@ -87,5 +83,3 @@ there as well:
 
     ~/path/to/virtualenv/bin/pip install nose
     ~/path/to/virtualenv/bin/nosetests --nologcapture --nocapture
-
-

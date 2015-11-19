@@ -1,9 +1,9 @@
 # Copyright (C) 2011 Lukas Lalinsky
 # Distributed under the MIT license, see the LICENSE file for details.
 
-import os.path
 import ConfigParser
 from sqlalchemy.engine.url import URL
+
 
 class S3Config(object):
     def __init__(self):
@@ -11,6 +11,7 @@ class S3Config(object):
 
     def read(self, parser, section):
         self.prefix = parser.get(section, 'prefix')
+
 
 class ListenConfig(object):
     def __init__(self):
@@ -20,6 +21,7 @@ class ListenConfig(object):
     def read(self, parser, section):
         self.addr = parser.get(section, 'address')
         self.port = parser.get(section, 'port')
+
 
 class DatabaseConfig(object):
 

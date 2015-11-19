@@ -3,7 +3,7 @@
 # Copyright (C) 2011 Lukas Lalinsky
 # Copyright (C) 2011 Robert Kaye
 # Copyright (C) 2012 Kuno Woudt
-# Copyright (C) 2012 MetaBrainz Foundation Inc.
+# Copyright (C) 2015 MetaBrainz Foundation Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,34 +23,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import sys
 import traceback
 import cherrypy
 import sqlalchemy
 import werkzeug.exceptions
 import werkzeug.urls
 import werkzeug.wrappers
-from cgi import parse_qs
 from contextlib import closing
-from coverart_redirect.config import Config
-from coverart_redirect.utils import LocalSysLogHandler, statuscode
 from coverart_redirect.request import CoverArtRedirect
 
-class Request (werkzeug.wrappers.Request):
 
-    def redirect (self, location, code=302):
+class Request(werkzeug.wrappers.Request):
 
-        if self.headers.get ('X-Forwarded-Proto') == 'https':
+    def redirect(self, location, code=302):
+        if self.headers.get('X-Forwarded-Proto') == 'https':
             self.environ['wsgi.url_scheme'] = 'https'
 
-        if location.startswith ("//"):
+        if location.startswith("//"):
             location = self.environ['wsgi.url_scheme'] + ':' + location
-        elif location.startswith ("/"):
+        elif location.startswith("/"):
             location = self.host_url + location[1:]
 
-        response = werkzeug.wrappers.BaseResponse (
-            "See: %s\n" % location, code, mimetype='text/plain')
-        response.headers['Location'] = werkzeug.urls.iri_to_uri (location)
+        response = werkzeug.wrappers.BaseResponse(
+            "See: %s\n" % location, code,
+            mimetype='text/plain',
+        )
+        response.headers['Location'] = werkzeug.urls.iri_to_uri(location)
         return response
 
 
@@ -65,12 +63,13 @@ class Server(object):
         try:
             with closing(self.engine.connect()) as conn:
                 response = CoverArtRedirect(self.config, conn).handle(request)
-
-            response.headers.add ('Access-Control-Allow-Origin', '*')
+            response.headers.add('Access-Control-Allow-Origin', '*')
             return response
-        except werkzeug.exceptions.HTTPException, e:
+        except werkzeug.exceptions.HTTPException as e:
             return e
-        except:
+        except:  # FIXME: Exception clause is too broad
             cherrypy.log("Caught exception\n" + traceback.format_exc())
-            return werkzeug.wrappers.Response (
-                status=500, response=["Whoops. Our bad.\n"])
+            return werkzeug.wrappers.Response(
+                status=500,
+                response=["Whoops. Our bad.\n"],
+            )

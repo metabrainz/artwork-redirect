@@ -9,4 +9,3 @@ import os
 from coverart_redirect.server import make_application
 
 application = make_application(os.environ['COVERART_REDIRECT_CONFIG'])
-

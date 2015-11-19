@@ -1,18 +1,14 @@
 # Copyright (C) 2011 Lukas Lalinsky
 # Distributed under the MIT license, see the LICENSE file for details.
 
-import re
 import syslog
 import werkzeug
 import werkzeug.http
 from logging import Handler
-from logging.handlers import SysLogHandler
 
 
 class LocalSysLogHandler(Handler):
-    """
-    Logging handler that logs to the local syslog using the syslog module
-    """
+    """Logging handler that logs to the local syslog using the syslog module."""
 
     facility_names = {
         "auth":     syslog.LOG_AUTH,
@@ -70,5 +66,5 @@ class LocalSysLogHandler(Handler):
             self.handleError(record)
 
 
-def statuscode (code):
+def statuscode(code):
     return '%d %s' % (code, werkzeug.http.HTTP_STATUS_CODES[code])

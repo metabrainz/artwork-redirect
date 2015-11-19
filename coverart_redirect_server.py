@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 # Copyright (C) 2011 Lukas Lalinsky
-# Copyright (C) 2011,2012 MetaBrainz Foundation
+# Copyright (C) 2015 MetaBrainz Foundation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from __future__ import print_function
 import os
 import sys
 from coverart_redirect.server import Server
 from coverart_redirect.config import Config
 
-def production (addr, port, application):
+
+def production(addr, port, application):
     import cherrypy
     from cherrypy import wsgiserver
 
     server = wsgiserver.CherryPyWSGIServer((addr, port), application)
 
     cherrypy.config.update({
-            'log.screen': True,
-            "server.thread_pool" : 10
+        'log.screen': True,
+        "server.thread_pool": 10
     })
     cherrypy.log("server starting")
 
@@ -44,16 +46,16 @@ def production (addr, port, application):
         server.stop()
 
 
-def development (addr, port, application):
+def development(addr, port, application):
     from werkzeug import run_simple
 
-    run_simple (addr, port, application, use_reloader=True,
-                extra_files=None, reloader_interval=1, threaded=False,
-                processes=1, request_handler=None)
+    run_simple(addr, port, application, use_reloader=True,
+               extra_files=None, reloader_interval=1, threaded=False,
+               processes=1, request_handler=None)
 
 
-def help ():
-    print """
+def print_help():
+    print("""
 syntax: python coverart_redirect_server.py [options]
 
 options:
@@ -61,14 +63,14 @@ options:
     --help               This message
     -r, --development    Use werkzeug development server (restarts on source code changes)
 
-"""
-    sys.exit (0)
+""")
+    sys.exit(0)
 
 
-def load_config (test=False):
-    """ Load configuration from coverart_redirect.conf.
+def load_config(test=False):
+    """Load configuration from coverart_redirect.conf.
 
-    if test=True will take the database configuration from the
+    If test=True will take the database configuration from the
     [testdatabase] section instead of the [database] section.
     """
 
@@ -79,20 +81,19 @@ def load_config (test=False):
 
 
 if __name__ == '__main__':
-    config = load_config ()
-    application = Server (config)
+    config = load_config()
+    application = Server(config)
 
     addr = config.listen.addr
     port = int(config.listen.port)
 
     option = None
-    if len (sys.argv) > 1:
-        option = sys.argv.pop ()
+    if len(sys.argv) > 1:
+        option = sys.argv.pop()
 
     if option == '--help':
-        help ()
+        print_help()
     elif option == '-r' or option == '--development':
-        development (addr, port, application)
+        development(addr, port, application)
     else:
-        production (addr, port, application)
-
+        production(addr, port, application)

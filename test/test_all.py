@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-# Copyright (C) 2012 MetaBrainz Foundation
+# Copyright (C) 2015 MetaBrainz Foundation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,9 +33,10 @@ from coverart_redirect.server import Server
 from werkzeug.wrappers import Response
 from werkzeug.test import Client, EnvironBuilder
 
-_root = dirname (dirname (abspath (__file__)))
+_root = dirname(dirname(abspath(__file__)))
 
-class All (unittest.TestCase):
+
+class All(unittest.TestCase):
 
     @classmethod
     def setUpClass (cls):
@@ -47,193 +48,173 @@ class All (unittest.TestCase):
             with closing(app.engine.connect()) as connection:
                 connection.execute (c.read ())
 
+    def setUp(self):
+        config = load_config(test=True)
+        app = Server(config)
 
-    def setUp (self):
-        config = load_config (test=True)
-        app = Server (config)
+        self.server = Client(app, Response)
 
-        self.server = Client (app, Response)
-
-
-    def verifyRedirect (self, src, dst, **kwargs):
+    def verifyRedirect(self, src, dst, **kwargs):
         response = self.server.get (src, **kwargs)
-        self.assertEqual (response.status, b'307 TEMPORARY REDIRECT')
-        self.assertEqual (response.headers['Location'], dst)
-        self.assertEqual (response.data, b"See: %s\n" % (dst))
+        self.assertEqual(response.status, b'307 TEMPORARY REDIRECT')
+        self.assertEqual(response.headers['Location'], dst)
+        self.assertEqual(response.data, b"See: %s\n" % (dst))
 
+    def test_caa_index(self):
+        response = self.server.get('/')
 
-    def test_caa_index (self):
+        self.assertEqual(response.status, b'200 OK')
+        self.assertEqual(response.mimetype, b'text/html')
+        self.assertTrue(b'<title>Cover Art Archive</title>' in response.data)
+        self.assertTrue(b'Images in the archive are curated' in response.data)
 
-        response = self.server.get ('/')
-
-        self.assertEqual (response.status, b'200 OK')
-        self.assertEqual (response.mimetype, b'text/html')
-        self.assertTrue (b'<title>Cover Art Archive</title>' in response.data)
-        self.assertTrue (b'Images in the archive are curated' in response.data)
-
-
-    def test_front (self):
-
-        response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/front')
-        self.assertEqual (response.status, b'404 NOT FOUND')
-        self.assertTrue (b'No front cover image found for' in response.data)
+    def test_front(self):
+        response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/front')
+        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertTrue(b'No front cover image found for' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-100000001'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
 
-        self.verifyRedirect (req + '/front',         expected + '.jpg')
-        self.verifyRedirect (req + '/front.jpg',     expected + '.jpg')
-        self.verifyRedirect (req + '/front-250',     expected + '_thumb250.jpg')
-        self.verifyRedirect (req + '/front-250.jpg', expected + '_thumb250.jpg')
-        self.verifyRedirect (req + '/front-500',     expected + '_thumb500.jpg')
-        self.verifyRedirect (req + '/front-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/front',         expected + '.jpg')
+        self.verifyRedirect(req + '/front.jpg',     expected + '.jpg')
+        self.verifyRedirect(req + '/front-250',     expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '/front-250.jpg', expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '/front-500',     expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/front-500.jpg', expected + '_thumb500.jpg')
 
-
-    def test_back (self):
-
-        response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/back')
-        self.assertEqual (response.status, b'404 NOT FOUND')
-        self.assertTrue (b'No back cover image found for' in response.data)
+    def test_back(self):
+        response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/back')
+        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertTrue(b'No back cover image found for' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
 
-        self.verifyRedirect (req + '/back',         expected + '.jpg')
-        self.verifyRedirect (req + '/back.jpg',     expected + '.jpg')
-        self.verifyRedirect (req + '/back-250',     expected + '_thumb250.jpg')
-        self.verifyRedirect (req + '/back-250.jpg', expected + '_thumb250.jpg')
-        self.verifyRedirect (req + '/back-500',     expected + '_thumb500.jpg')
-        self.verifyRedirect (req + '/back-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/back',         expected + '.jpg')
+        self.verifyRedirect(req + '/back.jpg',     expected + '.jpg')
+        self.verifyRedirect(req + '/back-250',     expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '/back-250.jpg', expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '/back-500',     expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/back-500.jpg', expected + '_thumb500.jpg')
 
+    def test_image(self):
 
-    def test_image (self):
-
-        response = self.server.get ('/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg')
-        self.assertEqual (response.status, b'404 NOT FOUND')
-        self.assertTrue (b'cover image with id 444444444 not found' in response.data)
+        response = self.server.get('/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg')
+        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertTrue(b'cover image with id 444444444 not found' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/999999999'
 
-        self.verifyRedirect (req + '.jpg',     expected + '.jpg')
-        self.verifyRedirect (req + '-250.jpg', expected + '_thumb250.jpg')
-        self.verifyRedirect (req + '-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '.jpg',     expected + '.jpg')
+        self.verifyRedirect(req + '-250.jpg', expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '-500.jpg', expected + '_thumb500.jpg')
 
-
-    def test_resolve_image_id_with_invalid_cover_image_id (self):
+    def test_resolve_image_id_with_invalid_cover_image_id(self):
         _id = "invalid"
         response = self.server.get("release/353710ec-1509-4df9-8ce2-9bd5011e3b80/" + _id)
-        self.assertEqual (response.status, b'400 BAD REQUEST')
+        self.assertEqual(response.status, b'400 BAD REQUEST')
 
-
-    def test_release_index (self):
-
-        response = self.server.get ('/release/98f08de3-c91c-4180-a961-06c205e63669/')
-        self.assertEqual (response.status, b'404 NOT FOUND')
-        self.assertTrue (b'No cover art found for' in response.data)
+    def test_release_index(self):
+        response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/')
+        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertTrue(b'No cover art found for' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
 
-        self.verifyRedirect (req + '/', expected + '/index.json')
+        self.verifyRedirect(req + '/', expected + '/index.json')
 
-
-    def test_direct_https (self):
-
+    def test_direct_https(self):
         expected = 'https://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
         expimg = expected + '/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
 
-        kw = { 'base_url': 'https://coverartarchive.org' }
+        kw = {'base_url': 'https://coverartarchive.org'}
 
-        self.verifyRedirect (req + '/', expected + '/index.json', **kw)
-        self.verifyRedirect (req + '/front', expimg + '100000001.jpg', **kw)
-        self.verifyRedirect (req + '/999999999.jpg', expimg + '999999999.jpg', **kw)
+        self.verifyRedirect(req + '/', expected + '/index.json', **kw)
+        self.verifyRedirect(req + '/front', expimg + '100000001.jpg', **kw)
+        self.verifyRedirect(req + '/999999999.jpg', expimg + '999999999.jpg', **kw)
 
-
-    def test_proxied_https (self):
-
+    def test_proxied_https(self):
         expected = 'https://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
         expimg = expected + '/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
 
-        kw = { 'headers': [('X-Forwarded-Proto', 'https')] }
+        kw = {'headers': [('X-Forwarded-Proto', 'https')]}
 
-        self.verifyRedirect (req + '/', expected + '/index.json', **kw)
-        self.verifyRedirect (req + '/front', expimg + '100000001.jpg', **kw)
-        self.verifyRedirect (req + '/999999999.jpg', expimg + '999999999.jpg', **kw)
+        self.verifyRedirect(req + '/', expected + '/index.json', **kw)
+        self.verifyRedirect(req + '/front', expimg + '100000001.jpg', **kw)
+        self.verifyRedirect(req + '/999999999.jpg', expimg + '999999999.jpg', **kw)
 
+    def test_release_group(self):
 
-    def test_release_group (self):
+        response = self.server.get('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924')
+        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertTrue(b'No cover art found for release group' in response.data)
 
-        response = self.server.get ('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924')
-        self.assertEqual (response.status, b'404 NOT FOUND')
-        self.assertTrue (b'No cover art found for release group' in response.data)
-
-        response = self.server.get ('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924/front')
-        self.assertEqual (response.status, b'404 NOT FOUND')
-        self.assertTrue (b'No cover art found for release group' in response.data)
+        response = self.server.get('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924/front')
+        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertTrue(b'No cover art found for release group' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-100000001'
         req = '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b'
 
-        self.verifyRedirect (req + '/front',         expected + '.jpg')
-        self.verifyRedirect (req + '/front.jpg',     expected + '.jpg')
-        self.verifyRedirect (req + '/front-250',     expected + '_thumb250.jpg')
-        self.verifyRedirect (req + '/front-250.jpg', expected + '_thumb250.jpg')
-        self.verifyRedirect (req + '/front-500',     expected + '_thumb500.jpg')
-        self.verifyRedirect (req + '/front-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/front',         expected + '.jpg')
+        self.verifyRedirect(req + '/front.jpg',     expected + '.jpg')
+        self.verifyRedirect(req + '/front-250',     expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '/front-250.jpg', expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '/front-500',     expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/front-500.jpg', expected + '_thumb500.jpg')
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
 
-        self.verifyRedirect (req,       expected + '/index.json')
-        self.verifyRedirect (req + '/', expected + '/index.json')
+        self.verifyRedirect(req,       expected + '/index.json')
+        self.verifyRedirect(req + '/', expected + '/index.json')
 
-
-    def test_options_method (self):
+    def test_options_method(self):
         for path in [
-                '/',
-                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/999999999',
-                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front',
-                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/back',
-                '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b',
-                '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b/front',
-                # 404s
-                '/release/98f08de3-c91c-4180-a961-06c205e63669/',
-                '/release/98f08de3-c91c-4180-a961-06c205e63669/front',
-                '/release/98f08de3-c91c-4180-a961-06c205e63669/back',
-                '/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924',
-                '/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924/front',
-                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg',
-                ]:
+            '/',
+            '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/999999999',
+            '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front',
+            '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/back',
+            '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b',
+            '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b/front',
+            # 404s
+            '/release/98f08de3-c91c-4180-a961-06c205e63669/',
+            '/release/98f08de3-c91c-4180-a961-06c205e63669/front',
+            '/release/98f08de3-c91c-4180-a961-06c205e63669/back',
+            '/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924',
+            '/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924/front',
+            '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg',
+        ]:
             response = self.server.open(path=path,
                                         method='OPTIONS')
-            self.assertEqual (response.status, b'200 OK')
-            self.assertTrue ('Allow' in response.headers)
+            self.assertEqual(response.status, b'200 OK')
+            self.assertTrue('Allow' in response.headers)
 
         for path in [
-                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/foo'
-                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front-100'
-                '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/-250'
-                ]:
+            '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/foo',
+            '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front-100',
+            '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/-250',
+        ]:
             response = self.server.open(path=path,
                                         method='OPTIONS')
-            self.assertEqual (response.status, b'400 BAD REQUEST')
+            self.assertEqual(response.status, b'400 BAD REQUEST')
 
-
-    def test_options_method_asterisk (self):
+    def test_options_method_asterisk(self):
         response = self.server.open(path='/*',
                                     method='OPTIONS')
-        self.assertEqual (response.status, b'200 OK')
-        self.assertTrue ('Allow' in response.headers)
+        self.assertEqual(response.status, b'200 OK')
+        self.assertTrue('Allow' in response.headers)
 
         response = self.server.open(path='/*foo',
                                     method='OPTIONS')
-        self.assertEqual (response.status, b'400 BAD REQUEST')
+        self.assertEqual(response.status, b'400 BAD REQUEST')
 
-
-    def test_options_501_on_http_10 (self):
+    def test_options_501_on_http_10(self):
         env = EnvironBuilder(path='/*foo', method='OPTIONS')
         env.server_protocol = 'HTTP/1.0'
         response = self.server.open(env)
-        self.assertEqual (response.status, b'501 NOT IMPLEMENTED')
+        self.assertEqual(response.status, b'501 NOT IMPLEMENTED')

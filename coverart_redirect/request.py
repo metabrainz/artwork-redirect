@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011 Lukas Lalinsky
 # Copyright (C) 2011 Robert Kaye
-# Copyright (C) 2012 MetaBrainz Foundation Inc.
+# Copyright (C) 2015 MetaBrainz Foundation Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,19 +24,16 @@
 
 import re
 import os
-import sys
-import cgi
-import urllib2
-import coverart_redirect
 from os.path import splitext
 from werkzeug.exceptions import BadRequest, NotImplemented, NotFound
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import pop_path_info
 from coverart_redirect.utils import statuscode
-from wsgiref.util import request_uri, shift_path_info
+from wsgiref.util import shift_path_info
+
 
 class CoverArtRedirect(object):
-    ''' Handles index and redirect requests '''
+    """Handles index and redirect requests."""
 
     def __init__(self, config, conn):
         self.config = config
@@ -44,42 +41,40 @@ class CoverArtRedirect(object):
         self.cmd = None
         self.proto = None
 
+    def validate_entity(self, entity):
+        if entity not in ['release', 'release-group']:
+            raise BadRequest("Only release and release-group entities are currently supported")
 
-    def validate_entity (self, entity):
-        if entity not in [ 'release', 'release-group']:
-            raise BadRequest ("Only release and release-group entities are currently supported")
-
-
-    def validate_mbid (self, mbid):
-        '''Check if an MBID is syntactically valid. If not, raise a BadRequest'''
+    def validate_mbid(self, mbid):
+        """Check if an MBID is syntactically valid. If not, raise a BadRequest."""
         if not mbid:
-            raise BadRequest ('no MBID specified')
+            raise BadRequest('no MBID specified')
         if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', mbid):
-            raise BadRequest ('invalid MBID specified')
+            raise BadRequest('invalid MBID specified')
 
-
-    def thumbnail (self, filename):
-        if not '-' in filename:
+    def thumbnail(self, filename):
+        if '-' not in filename:
             return ""
 
-        (id, size) = filename.split ('-')
+        id, size = filename.split('-')
 
-        if size.startswith ('250'):
+        if size.startswith('250'):
             return "-250"
-        elif size.startswith ('500'):
+        elif size.startswith('500'):
             return "-500"
         else:
             return ""
 
+    def resolve_mbid(self, entity, mbid):
+        """Handle the GID redirect.
 
-    def resolve_mbid (self, entity, mbid):
-        """ Handle the GID redirect. Query the database to see if the
-           given release has been merged into another release. If so,
-           return the redirected MBID, otherwise return the original
-           MBID. """
+        Query the database to see if the given release has been merged into
+        another release. If so, return the redirected MBID, otherwise return
+        the original MBID.
+        """
 
-        entity = entity.replace ("-", "_")
-        mbid = mbid.lower ()
+        entity = entity.replace("-", "_")
+        mbid = mbid.lower()
 
         query = """
             SELECT %(entity)s.gid
@@ -87,23 +82,22 @@ class CoverArtRedirect(object):
               JOIN musicbrainz.%(entity)s_gid_redirect
                 ON %(entity)s_gid_redirect.new_id = %(entity)s.id
              WHERE %(entity)s_gid_redirect.gid = %(mbid)s
-        """ % ({ "entity": entity, "mbid": "%(mbid)s" })
+        """ % ({"entity": entity, "mbid": "%(mbid)s"})
 
-        resultproxy = self.conn.execute (query, { "mbid": mbid })
-        row = resultproxy.fetchone ()
-        resultproxy.close ()
+        resultproxy = self.conn.execute(query, {"mbid": mbid})
+        row = resultproxy.fetchone()
+        resultproxy.close()
         if row:
-            return row[0];
+            return row[0]
 
         return mbid
 
+    def resolve_cover_index(self, mbid):
+        """Query the database to see if the given release has any
+        cover art entries, if not respond with a 404 to the request.
+        """
 
-    def resolve_cover_index (self, mbid):
-        """ Query the database to see if the given release has any
-        cover art entries, if not respond with a 404 to the
-        request. """
-
-        mbid = mbid.lower ()
+        mbid = mbid.lower()
         query = """
             SELECT release.gid
               FROM musicbrainz.release
@@ -111,23 +105,23 @@ class CoverArtRedirect(object):
              WHERE release.gid = %(mbid)s;
         """
 
-        resultproxy = self.conn.execute (query, { "mbid": mbid })
-        row = resultproxy.fetchone ()
-        resultproxy.close ()
+        resultproxy = self.conn.execute(query, {"mbid": mbid})
+        row = resultproxy.fetchone()
+        resultproxy.close()
         if row:
             return row[0];
 
-        raise NotFound ("No cover art found for release %s" % (mbid))
+        raise NotFound("No cover art found for release %s" % (mbid))
 
-
-    def resolve_release_group_cover_art (self, mbid):
-        """ This gets the selected front cover art for a release
+    def resolve_release_group_cover_art(self, mbid):
+        """This gets the selected front cover art for a release
         group, or picks the earliest front cover art available.  It
         takes a release group GID and returns a release GID -- if the
-        release has front cover art.  Otherwise it raises a 404
-        NotFound exception. """
+        release has front cover art. Otherwise it raises a 404
+        NotFound exception.
+        """
 
-        mbid = mbid.lower ()
+        mbid = mbid.lower()
         query = """
         SELECT DISTINCT ON (release.release_group)
           release.gid AS mbid
@@ -152,24 +146,23 @@ class CoverArtRedirect(object):
           release_event.date_day
         """
 
-        resultproxy = self.conn.execute (query, { "mbid": mbid })
-        row = resultproxy.fetchone ()
-        resultproxy.close ()
+        resultproxy = self.conn.execute(query, {"mbid": mbid})
+        row = resultproxy.fetchone()
+        resultproxy.close()
         if row:
-            return row[0];
+            return row[0]
 
-        raise NotFound ("No cover art found for release group %s" % (mbid))
-
+        raise NotFound("No cover art found for release group %s" % (mbid))
 
     def resolve_cover(self, mbid, type, thumbnail):
-        '''Get the frontiest or backiest cover image.'''
+        """Get the frontiest or backiest cover image."""
 
         if type == "Front":
             type_filter = "is_front = true"
         elif type == "Back":
             type_filter = "is_back = true"
         else:
-            raise NotFound ("No %s cover image found for release with identifier %s" % (
+            raise NotFound("No %s cover image found for release with identifier %s" % (
                 type.lower(), mbid))
 
         query = """
@@ -184,18 +177,17 @@ class CoverArtRedirect(object):
           ORDER BY ordering ASC LIMIT 1;
         """
 
-        resultproxy = self.conn.execute(query, { "mbid": mbid })
+        resultproxy = self.conn.execute(query, {"mbid": mbid})
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
             return u"%s%s.%s" % (unicode(row[0]), thumbnail, row[1])
 
-        raise NotFound ("No %s cover image found for release with identifier %s" % (
+        raise NotFound("No %s cover image found for release with identifier %s" % (
             type.lower(), mbid))
 
-
     def resolve_image_id(self, mbid, filename, thumbnail):
-        '''Get a cover image by image id.'''
+        """Get a cover image by image id."""
 
         query = """
             SELECT cover_art.id, suffix
@@ -209,26 +201,24 @@ class CoverArtRedirect(object):
           ORDER BY ordering ASC LIMIT 1;
         """
 
-        possible_id = re.sub ("[^0-9].*", "", filename)
+        possible_id = re.sub("[^0-9].*", "", filename)
 
-        image_id = None
         try:
             image_id = int(possible_id)
         except ValueError:
-            raise BadRequest ("%s does not not contain a valid cover image id" % (filename))
+            raise BadRequest("%s does not not contain a valid cover image id" % (filename))
 
-        resultproxy = self.conn.execute (
-            query, { "mbid": mbid, "image_id": image_id})
-        row = resultproxy.fetchone ()
-        resultproxy.close ()
+        resultproxy = self.conn.execute(
+            query, {"mbid": mbid, "image_id": image_id})
+        row = resultproxy.fetchone()
+        resultproxy.close()
         if row:
             return u"%s%s.%s" % (unicode(row[0]), thumbnail, row[1])
 
-        raise NotFound ("cover image with id %s not found" % (image_id))
-
+        raise NotFound("cover image with id %s not found" % (image_id))
 
     def handle_index(self):
-        '''Serve up the one static index page'''
+        """Serve up the one static index page."""
 
         try:
             f = open(os.path.join(self.config.static_path, "index"))
@@ -238,23 +228,24 @@ class CoverArtRedirect(object):
         txt = f.read()
         f.close()
 
-        return Response (response=txt, mimetype='text/html')
+        return Response(response=txt, mimetype='text/html')
 
     def handle_robots(self):
-        '''Serve up a permissive robots.txt'''
+        """Serve up a permissive robots.txt."""
         return Response(response="User-agent: *\nAllow: /", mimetype='text/plain')
 
     def handle_dir(self, request, mbid):
-        '''When the user requests no file, redirect to the root of the bucket to give the user an
-           index of what is in the bucket'''
+        """When the user requests no file, redirect to the root of the bucket
+        to give the user an index of what is in the bucket.
+        """
 
         index_url = "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)
-        return request.redirect (code=307, location=index_url)
-
+        return request.redirect(code=307, location=index_url)
 
     def handle_options(self, request, entity):
-        '''Repond to OPTIONS requests with a status code of 200 and the allowed
-           request methods'''
+        """Repond to OPTIONS requests with a status code of 200 and the allowed
+        request methods.
+        """
         if request.environ["SERVER_PROTOCOL"] != "HTTP/1.1":
             # OPTIONS does not exist in HTTP/1.0
             raise NotImplemented()
@@ -291,52 +282,50 @@ class CoverArtRedirect(object):
 
         return Response(status=200, headers=[("Allow", "GET, HEAD, OPTIONS")])
 
-
-    def handle_release (self, request, mbid, filename):
+    def handle_release(self, request, mbid, filename):
         if not filename:
-            mbid = self.resolve_cover_index (mbid)
+            mbid = self.resolve_cover_index(mbid)
             return self.handle_dir(request, mbid)
 
-        if filename.startswith ('front'):
-            filename = self.resolve_cover (mbid, 'Front', self.thumbnail (filename))
-        elif filename.startswith ('back'):
-            filename = self.resolve_cover (mbid, 'Back', self.thumbnail (filename))
+        if filename.startswith('front'):
+            filename = self.resolve_cover(mbid, 'Front', self.thumbnail(filename))
+        elif filename.startswith('back'):
+            filename = self.resolve_cover(mbid, 'Back', self.thumbnail(filename))
         else:
-            filename = self.resolve_image_id (
-                mbid, filename, self.thumbnail (filename))
+            filename = self.resolve_image_id(
+                mbid, filename, self.thumbnail(filename))
 
         return self.handle_redirect(request, mbid, filename.encode('utf8'))
 
-
-    def handle_release_group (self, request, mbid, filename):
-        release_mbid = self.resolve_release_group_cover_art (mbid)
+    def handle_release_group(self, request, mbid, filename):
+        release_mbid = self.resolve_release_group_cover_art(mbid)
         if not filename:
-            return self.handle_dir (request, release_mbid)
-        elif filename.startswith ('front'):
-            filename = self.resolve_cover (
-                release_mbid, 'Front', self.thumbnail (filename))
-            return self.handle_redirect (
+            return self.handle_dir(request, release_mbid)
+        elif filename.startswith('front'):
+            filename = self.resolve_cover(
+                release_mbid, 'Front', self.thumbnail(filename))
+            return self.handle_redirect(
                 request, release_mbid, filename.encode('utf8'))
         else:
-            return Response(status=400, response=
-                            "%s not supported for release groups." % (filename))
-
+            return Response(
+                status=400,
+                response="%s not supported for release groups." % filename,
+            )
 
     def handle_redirect(self, request, mbid, filename):
-        """ Handle the 307 redirect. """
+        """Handle the 307 redirect."""
 
         if not filename:
-            return [statuscode (400), "no filename specified"]
+            return [statuscode(400), "no filename specified"]
 
         filename = re.sub("-250.(jpg|gif|png|pdf)", "_thumb250.jpg", filename)
         filename = re.sub("-500.(jpg|gif|png|pdf)", "_thumb500.jpg", filename)
 
         url = "%s/mbid-%s/mbid-%s-%s" % (self.config.s3.prefix, mbid, mbid, filename)
-        return request.redirect (code=307, location=url)
-
+        return request.redirect(code=307, location=url)
 
     def handle(self, request):
-        '''Handle a request, parse and validate arguments and dispatch the request'''
+        """Handle a request, parse and validate arguments and dispatch the request."""
         entity = pop_path_info(request.environ)
 
         if request.method == "OPTIONS":
@@ -352,10 +341,10 @@ class CoverArtRedirect(object):
         req_mbid = shift_path_info(request.environ)
         self.validate_mbid(req_mbid)
 
-        mbid = self.resolve_mbid (entity, req_mbid)
+        mbid = self.resolve_mbid(entity, req_mbid)
         filename = pop_path_info(request.environ)
 
         if entity == 'release-group':
-            return self.handle_release_group (request, mbid, filename)
+            return self.handle_release_group(request, mbid, filename)
         else:
-            return self.handle_release (request, mbid, filename)
+            return self.handle_release(request, mbid, filename)
