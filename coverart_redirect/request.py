@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011 Lukas Lalinsky
 # Copyright (C) 2011 Robert Kaye
-# Copyright (C) 2015 MetaBrainz Foundation Inc.
+# Copyright (C) 2012, 2015 MetaBrainz Foundation Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
