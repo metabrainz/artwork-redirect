@@ -350,8 +350,9 @@ class CoverArtRedirect(object):
             return self.handle_index()
         if entity == 'robots.txt':
             return self.handle_robots()
-        if entity == 'api':
+        if entity == 'api':  #You'll need to pass the request variable here and adjust the signature of handle_api, but should work after that.
             return self.handle_api()
+        
 
         self.validate_entity(entity)
 
