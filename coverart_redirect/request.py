@@ -244,7 +244,7 @@ class CoverArtRedirect(object):
         '''Serve up a permissive robots.txt'''
         return Response(response="User-agent: *\nAllow: /", mimetype='text/plain')
 
-    def handle_api(self):
+    def handle_api(self, request):
         '''Redirect to API docs at musicbrainz.org'''
         return request.redirect (code=301, location='https://musicbrainz.org/doc/Cover_Art_Archive/API')
 
@@ -350,8 +350,8 @@ class CoverArtRedirect(object):
             return self.handle_index()
         if entity == 'robots.txt':
             return self.handle_robots()
-        if entity == 'api':  #You'll need to pass the request variable here and adjust the signature of handle_api, but should work after that.
-            return self.handle_api()
+        if entity == 'api':  
+            return self.handle_api(request)
         
 
         self.validate_entity(entity)
