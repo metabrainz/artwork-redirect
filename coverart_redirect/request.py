@@ -353,7 +353,7 @@ class CoverArtRedirect(object):
         if entity == 'api':  
             return self.handle_api(request)
         self.validate_entity(entity)
-        
+
         req_mbid = shift_path_info(request.environ)
         self.validate_mbid(req_mbid)
 
