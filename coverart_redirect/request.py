@@ -246,7 +246,7 @@ class CoverArtRedirect(object):
 
     def handle_api(self, request):
         '''Redirect to API docs at musicbrainz.org'''
-        return request.redirect (code=301, location='https://musicbrainz.org/doc/Cover_Art_Archive/API')
+        return request.redirect(code=301, location='https://musicbrainz.org/doc/Cover_Art_Archive/API')
 
     def handle_dir(self, request, mbid):
         '''When the user requests no file, redirect to the root of the bucket to give the user an
