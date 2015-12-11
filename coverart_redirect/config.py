@@ -59,6 +59,14 @@ class DatabaseConfig(object):
         if parser.has_option(section, 'password'):
             self.password = parser.get(section, 'password')
 
+class RateLimitServerConfig(object):
+    def __init__(self):
+        self.host = None
+        self.port = None
+
+    def read(self, parser, section):
+        self.host = parser.get(section, 'host')
+        self.port = parser.get(section, 'port')
 
 class Config(object):
 
@@ -75,5 +83,5 @@ class Config(object):
         self.listen.read(parser, 'listen')
         self.s3 = S3Config()
         self.s3.read(parser, 's3')
-
-
+        self.rate_limit_server = RateLimitServerConfig()
+        self.rate_limit_server.read(parser, 'rate_limit_server')
