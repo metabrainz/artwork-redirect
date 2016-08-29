@@ -1,0 +1,18 @@
+# Compose file for use on production servers.
+version: "2"
+services:
+
+  caa-redirect:
+    build:
+      context: ..
+      dockerfile: ./Dockerfile
+    restart: always
+    environment:
+      DEPLOY_ENV: "prod"
+      SERVICE_62080_NAME: "caa-redirect"
+      SERVICE_62080_CHECK_HTTP: "/"
+      SERVICE_62080_CHECK_INTERVAL: "15s"
+      SERVICE_62080_CHECK_TIMEOUT: "3s"
+    network_mode: bridge
+    ports:
+      - "62080:62080"

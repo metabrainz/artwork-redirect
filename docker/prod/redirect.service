@@ -1,0 +1,3 @@
+#!/bin/bash
+export PYTHONPATH="/code/"
+exec python /code/coverart_redirect_server.py

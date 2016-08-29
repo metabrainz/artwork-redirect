@@ -1,0 +1,28 @@
+FROM python:2.7.12
+
+# Node
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN apt-get install -y nodejs
+
+RUN mkdir /code
+WORKDIR /code
+
+# Python dependencies
+RUN apt-get update && \
+    apt-get install -y \
+            build-essential \
+            libpq-dev \
+            libffi-dev \
+            libssl-dev
+RUN pip install -U cffi
+COPY requirements.txt /code/
+RUN pip install -r requirements.txt
+
+# Node dependencies
+COPY package.json /code/
+RUN npm install
+
+COPY . /code/
+RUN lessc ./static/css/main.less > ./static/css/main.css
+
+CMD ["python", "coverart_redirect_server.py"]
