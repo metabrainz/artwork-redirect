@@ -75,5 +75,3 @@ class Config(object):
         self.listen.read(parser, 'listen')
         self.s3 = S3Config()
         self.s3.read(parser, 's3')
-
-

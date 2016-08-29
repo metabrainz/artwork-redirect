@@ -1,24 +1,34 @@
-FROM debian:jessie
+FROM python:2.7.12
 
-ARG DEBIAN_FRONTEND="noninteractive"
+RUN apt-get update \
+    && apt-get install -y build-essential \
+                          libpq-dev \
+                          libffi-dev \
+                          libssl-dev
 
-ENV LANG C.UTF-8
-
-RUN apt-get update && apt-get install -y \
-    apt-utils
-
-RUN apt-get install -y \
-  git-core \
-  python-pip \
-  build-essential \
-  libpq-dev \
-  python-dev \
-  libffi-dev \
-  curl
-
-RUN curl -sL https://deb.nodesource.com/setup_4.x | bash -
-
+# Node
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install -y nodejs
+
+RUN mkdir /code
+WORKDIR /code
+
+# Python dependencies
+RUN pip install -U cffi
+COPY requirements.txt /code/
+RUN pip install -r requirements.txt
+
+# Node dependencies
+COPY package.json /code/
+RUN npm install
+
+COPY . /code/
+RUN lessc ./static/css/main.less > ./static/css/main.css
+
+CMD ["python", "coverart_redirect_server.py"]
+
+
+
 
 WORKDIR /apps
 RUN git clone https://github.com/metabrainz/coverart_redirect.git
@@ -26,7 +36,7 @@ RUN git clone https://github.com/metabrainz/coverart_redirect.git
 RUN npm install -g less
 
 WORKDIR /apps/coverart_redirect
-RUN pip install -U cffi
+
 RUN pip install -r requirements.txt
 
 COPY coverart_redirect.conf /apps/coverart_redirect/
@@ -40,4 +50,4 @@ RUN lessc ./static/css/main.less > ./static/css/main.css
 
 EXPOSE 8080
 
-CMD ["python", "coverart_redirect_server.py"]
+

@@ -1,0 +1,13 @@
+.git
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Node
+node_modules
+
+# Configuration
+coverart_redirect.conf
+
+/data

@@ -3,3 +3,4 @@
 dist
 coverart_redirect.conf
 node_modules
+/data

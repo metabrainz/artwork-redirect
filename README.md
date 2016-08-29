@@ -7,11 +7,11 @@ releases merges.
 
 This URL:
 
-   http://coverartarchive.org/release/5b07fe49-39a9-47a6-97b3-e5005992fb2a/front.jpg
+   https://coverartarchive.org/release/5b07fe49-39a9-47a6-97b3-e5005992fb2a/front.jpg
 
 should redirect to:
 
-   http://archive.org/download/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a-2270157148.jpg
+   https://archive.org/download/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a-2270157148.jpg
 
 
 ## Install
