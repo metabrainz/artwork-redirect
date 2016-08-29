@@ -5,9 +5,10 @@ host=localhost
 port=5432
 
 [testdatabase]
-user=musicbrainz_user
-name=musicbrainz_test
-host=localhost
+user=musicbrainz
+password=musicbrainz
+name=musicbrainz
+host=mbs_db_test
 port=5432
 
 [listen]

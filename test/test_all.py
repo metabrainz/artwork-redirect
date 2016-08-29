@@ -37,16 +37,29 @@ _root = dirname(dirname(abspath(__file__)))
 
 
 class All(unittest.TestCase):
-
     @classmethod
-    def setUpClass (cls):
-        config = load_config (test=True)
-        app = Server (config)
+    def setUpClass(cls):
+        config = load_config(test=True)
+        app = Server(config)
 
-        sqlfile = join (_root, "test", "cover_art_archive.sql")
-        with codecs.open (sqlfile, "rb", "utf-8") as c:
+        # MusicBrainz tables
+        with codecs.open(join(_root, "test", "create_mb.sql"), "rb", "utf-8") as c:
             with closing(app.engine.connect()) as connection:
-                connection.execute (c.read ())
+                connection.execute(c.read())
+
+        # CAA tables and views
+        with codecs.open(join(_root, "test", "create_caa.sql"), "rb", "utf-8") as c:
+            with closing(app.engine.connect()) as connection:
+                connection.execute(c.read())
+        with codecs.open(join(_root, "test", "create_caa_views.sql"), "rb", "utf-8") as c:
+            with closing(app.engine.connect()) as connection:
+                connection.execute(c.read())
+
+        # Test data
+        sqlfile = join(_root, "test", "cover_art_archive.sql")
+        with codecs.open(sqlfile, "rb", "utf-8") as c:
+            with closing(app.engine.connect()) as connection:
+                connection.execute(c.read())
 
     def setUp(self):
         config = load_config(test=True)
@@ -55,7 +68,7 @@ class All(unittest.TestCase):
         self.server = Client(app, Response)
 
     def verifyRedirect(self, src, dst, **kwargs):
-        response = self.server.get (src, **kwargs)
+        response = self.server.get(src, **kwargs)
         self.assertEqual(response.status, b'307 TEMPORARY REDIRECT')
         self.assertEqual(response.headers['Location'], dst)
         self.assertEqual(response.data, b"See: %s\n" % (dst))

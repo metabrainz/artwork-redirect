@@ -1,0 +1,19 @@
+# Docker Compose file for testing
+version: "2"
+services:
+
+  web_test:
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile.test
+    depends_on:
+      - mbs_db_test
+
+  mbs_db_test:
+    build:
+      context: ./test_mbs_pg
+      dockerfile: /Dockerfile
+    environment:
+      POSTGRES_USER: musicbrainz
+      POSTGRES_PASSWORD: musicbrainz
+      POSTGRES_DB: musicbrainz
