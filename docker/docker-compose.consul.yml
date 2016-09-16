@@ -1,0 +1,36 @@
+version: "2"
+services:
+
+  consulagent:
+    command: -server -bootstrap
+    image: progrium/consul
+    ports:
+      - "8500:8500"
+
+  consulagent:
+    command: -server -bootstrap
+    image: progrium/consul
+    ports:
+      - "8500:8500"
+
+  git2consul:
+    command: --endpoint consulagent --port 8500 --config-file /etc/git2consul.d/config.json
+    image: cimpress/git2consul
+    restart: always
+    links:
+      - consulagent
+    volumes:
+      - ../:/tmp/caa-redirect.git
+      - ./git2consul:/etc/git2consul.d
+
+  caa-redirect:
+    build:
+        context: ..
+        dockerfile: ./Dockerfile
+    environment:
+      DEPLOY_ENV: prod
+    volumes:
+      - ../:/code
+    ports:
+      - "8080:8080"
+

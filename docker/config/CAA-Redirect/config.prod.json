@@ -1,0 +1,7 @@
+{
+  "musicbrainz_db": {
+    "name": "musicbrainz_db",
+    "user": "caa-redirect"
+  },
+  "s3_prefix": "//archive.org/download"
+}

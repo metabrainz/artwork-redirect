@@ -1,0 +1,4 @@
+#!/bin/bash
+
+PYTHONPATH=/code/
+exec python /code/coverart_redirect_server.py

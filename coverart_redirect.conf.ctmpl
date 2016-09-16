@@ -1,0 +1,20 @@
+{{- define "KEY" -}}
+    {{ key (printf "docker-server-configs/CAA-Redirect/config.%s.json/%s" (env "DEPLOY_ENV") .) }}
+{{- end -}}
+
+{{if service "postgres-master"}}
+{{with index (service "postgres-master") 0}}
+[database]
+user={{template "KEY" "musicbrainz_db/name"}}
+name={{template "KEY" "musicbrainz_db/user"}}
+host={{.Address}}
+port={{.Port}}
+{{end}}
+{{end}}
+
+[listen]
+address=localhost
+port=8080
+
+[s3]
+prefix={{template "KEY" "s3_prefix"}}
