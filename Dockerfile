@@ -49,5 +49,5 @@ RUN chmod 755 /etc/sv/redirect/run && \
 # Configuration
 COPY ./docker/prod/consul-template.conf /etc/consul-template.conf
 
-EXPOSE 62080
+EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/runsvinit"]

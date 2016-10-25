@@ -16,4 +16,4 @@ services:
       SERVICE_62080_CHECK_TIMEOUT: "3s"
     network_mode: bridge
     ports:
-      - "62080:62080"
+      - "62080:8080"

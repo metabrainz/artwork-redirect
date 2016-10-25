@@ -15,7 +15,7 @@ port={{.Port}}
 
 [listen]
 address=0.0.0.0
-port=62080
+port=8080
 
 [s3]
 prefix={{template "KEY" "s3_prefix"}}
