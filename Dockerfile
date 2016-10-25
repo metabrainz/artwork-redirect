@@ -1,7 +1,5 @@
 FROM python:2.7.12
 
-COPY ./docker/prod/environment /etc/consul_template_env.sh
-
 COPY ./docker/prod/docker-helpers/install_consul_template.sh \
      ./docker/prod/docker-helpers/install_runit.sh \
      /usr/local/bin/
