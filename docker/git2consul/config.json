@@ -4,7 +4,7 @@
     {
       "name": "docker-server-configs",
       "url": "/tmp/caa-redirect.git",
-      "branches": ["docker"],
+      "branches": ["master"],
       "source_root": "docker/config/",
       "expand_keys": true,
       "hooks": [
