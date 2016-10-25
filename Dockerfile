@@ -31,10 +31,11 @@ RUN pip install -r requirements.txt
 # Node dependencies
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install -y nodejs
-RUN npm install -g less less-plugin-clean-css
+COPY ./package.json /code/
+RUN npm install
 
 COPY . /code/
-RUN lessc ./static/css/main.less > ./static/css/main.css
+RUN ./node_modules/.bin/lessc ./static/css/main.less > ./static/css/main.css
 
 ############
 # Services #
