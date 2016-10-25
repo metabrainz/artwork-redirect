@@ -14,19 +14,30 @@ RUN chmod 755 /usr/local/bin/install_consul_template.sh /usr/local/bin/install_r
 # CAA Redirect #
 ################
 
+ARG BUILD_DEPS=" \
+    build-essential \
+    libpq-dev \
+    libffi-dev \
+    libssl-dev"
+
+RUN apt-get update && \
+    apt-get install \
+        --no-install-suggests \
+        --no-install-recommends \
+        -y \
+        $BUILD_DEPS && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN mkdir /code
 WORKDIR /code
 
 # Python dependencies
-RUN apt-get update && \
-    apt-get install -y \
-            build-essential \
-            libpq-dev \
-            libffi-dev \
-            libssl-dev
 RUN pip install -U cffi
 COPY requirements.txt /code/
 RUN pip install -r requirements.txt
+
+RUN apt-get purge -y $BUILD_DEPS && \
+    apt-get autoremove -y
 
 # Node dependencies
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
