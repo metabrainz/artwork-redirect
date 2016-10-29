@@ -6,8 +6,7 @@ port=5432
 
 [testdatabase]
 user=musicbrainz
-password=musicbrainz
-name=musicbrainz
+name=musicbrainz_test
 host=mbs_db_test
 port=5432
 
