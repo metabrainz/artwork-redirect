@@ -2,8 +2,8 @@
     {{ key (printf "docker-server-configs/CAA-Redirect/config.%s.json/%s" (env "DEPLOY_ENV") .) }}
 {{- end -}}
 
-{{if service "pgbouncer-slave"}}
-{{with index (service "pgbouncer-slave") 0}}
+{{if service "postgres-master"}}
+{{with index (service "postgres-master") 0}}
 [database]
 name={{template "KEY" "musicbrainz_db/name"}}
 user={{template "KEY" "musicbrainz_db/user"}}
