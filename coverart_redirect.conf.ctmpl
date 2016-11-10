@@ -2,16 +2,21 @@
     {{ key (printf "docker-server-configs/CAA-Redirect/config.%s.json/%s" (env "DEPLOY_ENV") .) }}
 {{- end -}}
 
-{{if service "pgbouncer-slave"}}
-{{with index (service "pgbouncer-slave") 0}}
 [database]
 name={{template "KEY" "musicbrainz_db/name"}}
 user={{template "KEY" "musicbrainz_db/user"}}
 password={{template "KEY" "musicbrainz_db/password"}}
+{{- if service "pgbouncer-slave"}}
+{{- with index (service "pgbouncer-slave") 0}}
 host={{.Address}}
 port={{.Port}}
-{{end}}
-{{end}}
+{{- end}}
+{{- else if service "pgbouncer-master"}}
+{{- with index (service "pgbouncer-master") 0}}
+host={{.Address}}
+port={{.Port}}
+{{- end}}
+{{- end}}
 
 [listen]
 address=0.0.0.0
