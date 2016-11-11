@@ -23,4 +23,5 @@ COPY . /code/
 RUN cp coverart_redirect.conf.dist coverart_redirect.conf
 
 CMD dockerize -wait tcp://mbs_db_test:5432 -timeout 200s \
-    sleep 5 && nosetests --with-xunit --with-coverage --cover-package=coverart_redirect --cover-erase --cover-html
+    sleep 5 && py.test --junitxml=/data/test_report.xml \
+                       --cov-report xml:/data/coverage.xml
