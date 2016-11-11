@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 # Copyright (C) 2012 MetaBrainz Foundation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,16 +22,20 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import sys
+import os
+import os.path
+
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(_root)
+
 import codecs
 import unittest
-from os.path import abspath, join, dirname
 from contextlib import closing
 from coverart_redirect_server import load_config
 from coverart_redirect.server import Server
 from werkzeug.wrappers import Response
 from werkzeug.test import Client, EnvironBuilder
-
-_root = dirname(dirname(abspath(__file__)))
 
 
 class All(unittest.TestCase):
@@ -42,7 +44,7 @@ class All(unittest.TestCase):
     def setUpClass(cls):
         cls.app = Server(load_config(test=True))
 
-        sqlfile = join(_root, "test", "add_data.sql")
+        sqlfile = os.path.join(_root, "test", "add_data.sql")
         with codecs.open(sqlfile, "rb", "utf-8") as c:
             with closing(cls.app.engine.connect()) as connection:
                 connection.execute(c.read())
