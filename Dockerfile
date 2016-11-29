@@ -1,29 +1,13 @@
-FROM python:2.7.12
+FROM metabrainz/python:2.7
 
-COPY ./docker/prod/docker-helpers/install_consul_template.sh \
-     ./docker/prod/docker-helpers/install_runit.sh \
-     /usr/local/bin/
-RUN chmod 755 /usr/local/bin/install_consul_template.sh /usr/local/bin/install_runit.sh && \
-    sync && \
-    install_consul_template.sh && \
-    rm -f \
-        /usr/local/bin/install_consul_template.sh \
-        /usr/local/bin/install_runit.sh
-
-################
-# CAA Redirect #
-################
-
-RUN apt-get update && \
-    apt-get install \
-        --no-install-suggests \
-        --no-install-recommends \
-        -y \
-        build-essential \
-        libffi-dev \
-        libssl-dev \
-        libpq-dev && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+                       build-essential \
+                       git \
+                       libpq-dev \
+                       libffi-dev \
+                       libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /code
 WORKDIR /code
