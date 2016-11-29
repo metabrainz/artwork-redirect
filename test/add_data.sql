@@ -32,4 +32,7 @@ INSERT INTO cover_art_archive.image_type (mime_type, suffix) VALUES ('image/jpeg
 INSERT INTO cover_art_archive.cover_art (id, release, edit, ordering, mime_type)
     VALUES (100000001, 1, 1, 1, 'image/jpeg'), (999999999, 1, 1, 1, 'image/jpeg');
 
+INSERT INTO cover_art_archive.cover_art_type (id, type_id)
+    VALUES (100000001, 1), (100000001, 3), (999999999, 2);
+
 COMMIT;
