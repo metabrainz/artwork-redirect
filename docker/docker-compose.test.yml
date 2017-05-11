@@ -10,4 +10,4 @@ services:
       - mbs_db_test
 
   mbs_db_test:
-    image: metabrainz/musicbrainz-test-database:master
+    image: metabrainz/musicbrainz-test-database:schema-change-2017-q2
