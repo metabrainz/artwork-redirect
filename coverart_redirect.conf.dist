@@ -1,7 +1,7 @@
 [database]
-user=musicbrainz_user
-name=musicbrainz_db
-host=localhost
+user=musicbrainz
+name=musicbrainz_test
+host=mbs_db_test
 port=5432
 
 [testdatabase]
@@ -11,8 +11,8 @@ host=mbs_db_test
 port=5432
 
 [listen]
-address=localhost
-port=8080
+address=0.0.0.0
+port=8081
 
 [s3]
 prefix=//archive.org/download
