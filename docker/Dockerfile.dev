@@ -1,13 +1,5 @@
 FROM metabrainz/python:2.7
 
-# Node
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
-RUN apt-get install -y nodejs
-
-RUN mkdir /code
-WORKDIR /code
-
-# Python dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
                        build-essential \
@@ -16,15 +8,23 @@ RUN apt-get update \
                        libffi-dev \
                        libssl-dev \
     && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir /code
+WORKDIR /code
+
+# Python dependencies
 RUN pip install -U cffi
 COPY requirements.txt /code/
 RUN pip install -r requirements.txt
 
 # Node dependencies
-COPY package.json /code/
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN apt-get install -y nodejs
+COPY ./package.json /code/
 RUN npm install
 
 COPY . /code/
-RUN lessc ./static/css/main.less > ./static/css/main.css
+RUN cp coverart_redirect.conf.dist coverart_redirect.conf
+RUN ./node_modules/.bin/lessc ./static/css/main.less > ./static/css/main.css
 
 CMD ["python", "coverart_redirect_server.py"]
