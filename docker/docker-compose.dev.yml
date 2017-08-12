@@ -1,0 +1,15 @@
+# Docker Compose file for development
+version: "2"
+services:
+
+  caa_redirect:
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile.dev
+    depends_on:
+      - mbs_db_test
+    ports:
+      - "8080:8081"
+
+  mbs_db_test:
+    image: metabrainz/musicbrainz-test-database:schema-change-2017-q2
