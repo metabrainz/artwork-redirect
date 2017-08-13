@@ -31,6 +31,7 @@ import werkzeug.urls
 import werkzeug.wrappers
 from contextlib import closing
 from coverart_redirect.request import CoverArtRedirect
+from coverart_redirect.loggers import get_sentry
 
 
 class Request(werkzeug.wrappers.Request):
@@ -66,8 +67,10 @@ class Server(object):
             response.headers.add('Access-Control-Allow-Origin', '*')
             return response
         except werkzeug.exceptions.HTTPException as e:
+            get_sentry().captureException()
             return e
         except:  # FIXME: Exception clause is too broad
+            get_sentry().captureException()
             cherrypy.log("Caught exception\n" + traceback.format_exc())
             return werkzeug.wrappers.Response(
                 status=500,
