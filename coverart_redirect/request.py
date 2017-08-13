@@ -29,6 +29,7 @@ from werkzeug.exceptions import BadRequest, NotImplemented, NotFound
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import pop_path_info
 from coverart_redirect.utils import statuscode
+from coverart_redirect.loggers import get_sentry
 from wsgiref.util import shift_path_info
 
 
@@ -222,6 +223,7 @@ class CoverArtRedirect(object):
         try:
             f = open(os.path.join(self.config.static_path, "index.html"))
         except IOError:
+            get_sentry().captureException()
             return Response(status=500, response="Internal Server Error")
         txt = f.read()
         f.close()
@@ -231,6 +233,7 @@ class CoverArtRedirect(object):
         try:
             f = open(os.path.join(self.config.static_path, "css", "main.css"))
         except IOError:
+            get_sentry().captureException()
             return Response(status=500, response="Internal Server Error")
         txt = f.read()
         f.close()
@@ -243,6 +246,7 @@ class CoverArtRedirect(object):
         try:
             f = open(os.path.join(js_dir, name))
         except IOError:
+            get_sentry().captureException()
             return Response(status=500, response="Internal Server Error")
         txt = f.read()
         f.close()
@@ -255,6 +259,7 @@ class CoverArtRedirect(object):
         try:
             f = open(os.path.join(img_dir, name))
         except IOError:
+            get_sentry().captureException()
             return Response(status=500, response="Internal Server Error")
         txt = f.read()
         f.close()
@@ -308,6 +313,8 @@ class CoverArtRedirect(object):
                 except ValueError:
                     if id_text not in ('front', 'back'):
                         raise BadRequest()
+                    else:
+                        get_sentry().captureException()
 
                 if len(_split) > 1:
                     size = _split[1]
