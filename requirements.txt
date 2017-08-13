@@ -3,5 +3,6 @@ coverage==4.0.3
 pytest==3.0.4
 pytest-cov==2.4.0
 psycopg2==2.6.1
+raven==6.1.0
 sqlalchemy==0.5.8
 werkzeug==0.11.2

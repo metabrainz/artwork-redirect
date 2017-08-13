@@ -13,6 +13,14 @@ class S3Config(object):
         self.prefix = parser.get(section, 'prefix')
 
 
+class SentryConfig(object):
+    def __init__(self):
+        self.dsn = None
+
+    def read(self, parser, section):
+        self.dsn = parser.get(section, 'dsn')
+
+
 class ListenConfig(object):
     def __init__(self):
         self.addr = None
@@ -75,3 +83,5 @@ class Config(object):
         self.listen.read(parser, 'listen')
         self.s3 = S3Config()
         self.s3.read(parser, 's3')
+        self.sentry = SentryConfig()
+        self.sentry.read(parser, 'sentry')

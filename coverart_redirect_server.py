@@ -26,11 +26,15 @@ import os
 import sys
 from coverart_redirect.server import Server
 from coverart_redirect.config import Config
+from coverart_redirect.loggers import init_raven_client
 
 
-def production(addr, port, application):
+def production(addr, port, application, sentry_dsn=None):
     import cherrypy
     from cherrypy import wsgiserver
+
+    if sentry_dsn:
+        init_raven_client(sentry_dsn)
 
     server = wsgiserver.CherryPyWSGIServer((addr, port), application)
 
@@ -96,4 +100,4 @@ if __name__ == '__main__':
     elif option == '-r' or option == '--development':
         development(addr, port, application)
     else:
-        production(addr, port, application)
+        production(addr, port, application, sentry_dsn=config.sentry.dsn)
