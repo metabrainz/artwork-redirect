@@ -1,9 +1,8 @@
 Cover Art Archive URL redirect service
 ======================================
 
-This service will redirect from `coverartarchive.org` URLs to
-`archive.org` URLs, taking into account MBID redirects caused by
-release merges.
+This service will redirect from `coverartarchive.org` URLs to `archive.org` URLs, taking into account MBID redirects
+caused by release merges.
 
 For example, this URL:
 
@@ -14,72 +13,53 @@ should redirect to:
     https://archive.org/download/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a-2270157148.jpg
 
 
-## Install
+## Development setup
 
-To install this service, you will need to have the following python
-packages installed:
+There are two ways of setting up the server: with and without Docker. First option might be easier if you are just
+getting started. Second requires having a MusicBrainz database set up on your machine.
 
-    cherrypy  psycopg2  sqlalchemy  werkzeug
+### Option 1: Docker-based
 
-Depending on your os version you can install them with the system
-package manager, or you may have to install them manually.
+Make sure that you have [Docker](https://www.docker.com/) and [Compose](https://github.com/docker/compose) installed.
+To start the development server and its dependencies run:
 
+    $ docker-compose -f docker/docker-compose.dev.yml up --build
 
-### Ubuntu 10.04 LTS or later
+After all Docker images start you should be able to access the web server at `localhost:8080`.
 
-On Ubuntu you can install these with the following command:
+**Note:** Keep in mind that any changes that you make won't show up until the server container is recreated. To do that
+you can simply stop the server (Ctrl + C) and run the command above again.
 
-    sudo apt-get install python-cherrypy3 python-psycopg2 python-sqlalchemy python-werkzeug
+### Option 2: Manual
 
-As we are currently running this service on Ubuntu 10.04 LTS,
-requirements.txt has been pinned at the versions shipped with that
-version of Ubuntu.  If you want to run/develop/test against those
-exact versions on a more recent Ubuntu or on a different GNU/Linux
-distribution or a different operating system, use virtualenv:
+CAA redirect server works with *Python 2*, so make sure that you have it installed. Create a
+[virtual environment](https://packaging.python.org/tutorials/installing-packages/#creating-virtual-environments),
+if necessary.
 
-    virtualenv ~/path/to/virtualenv
-    ~/path/to/virtualenv/bin/pip install -r requirements.txt
+Install all required packages using [pip](https://pip.pypa.io):
 
-
-## Running the server
-
-CherryPy is used as the WSGI server. To deploy, simply copy
-coverart_redirect.conf.dist to coverart_redirect.conf, edit the
-settings to point to a MusicBrainz postgres install and where to
-listen for connections.
-
-Then run coverart_redirect_server.py to run the service. All logging
-goes to stdout, including stacktraces, so its suitable for running
-inside of daemontools.
-
-If you've installed some of the required packages with virtualenv, run
-the server using python from the virtualenv directory:
-
-    ~/path/to/virtualenv/bin/python coverart_redirect_server.py
-
-
-## Running the tests
-
-I use nose as a test runner, though other test runners may work.
-
-To install nose on Ubuntu:
-
-    sudo apt-get install python-nose
-
-I prefer to run it like this:
-
-    nosetests --nologcapture --nocapture
-
-You should get output like this:
-
-    .....
-    ----------------------------------------------------------------------
-    Ran 5 tests in 12.221s
+    $ pip install -r requirements.txt
     
-    OK
+Copy *coverart_redirect.conf.dist* to *coverart_redirect.conf* and adjust configuration values. You'd want to set up
+a connection to the instance of PostgreSQL with a MusicBrainz database that you should already have running.
 
-If you're using a virtualenv you probably have to install nose in
-there as well:
+Finally, run the *coverart_redirect_server.py* script to start the server.
 
-    ~/path/to/virtualenv/bin/pip install nose
-    ~/path/to/virtualenv/bin/nosetests --nologcapture --nocapture
+All logging goes to stdout, including stacktraces, so its suitable for running inside of daemontools.
+
+## Testing
+
+*Currently some tests depend on an actual MusicBrainz database running in the background, so make sure to follow the
+setup process first.* We use [Pytest](https://pytest.org) as a test runner. All tests can be run with the following
+command:
+
+    $ pytest
+
+There are more ways to use Pytest (for example, to run only tests for a specific module). Check their documentation to
+see what kinds of additional options you have.
+
+With **Docker** you can run all the tests like this:
+
+    $ docker-compose -f docker/docker-compose.test.yml up --build
+
+You should see test results in the output.
