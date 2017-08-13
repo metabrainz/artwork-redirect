@@ -4,5 +4,6 @@
     "user": "caa_redirect",
     "password": "caa_redirect"
   },
-  "s3_prefix": "//archive.org/download"
+  "s3_prefix": "//archive.org/download",
+  "sentry_dsn": ""
 }

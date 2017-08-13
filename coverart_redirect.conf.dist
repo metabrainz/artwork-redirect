@@ -14,5 +14,8 @@ port=5432
 address=0.0.0.0
 port=8081
 
+[sentry]
+dsn=
+
 [s3]
 prefix=//archive.org/download
