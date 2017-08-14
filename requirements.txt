@@ -4,5 +4,6 @@ pytest==3.0.4
 pytest-cov==2.4.0
 psycopg2==2.6.1
 raven==6.1.0
+requests==2.18.3
 sqlalchemy==0.5.8
 werkzeug==0.11.2
