@@ -2,6 +2,8 @@ import raven
 import raven.transport.threaded_requests
 from raven.handlers.logging import SentryHandler
 from raven.conf import setup_logging
+from werkzeug.exceptions import HTTPException
+from exceptions import KeyboardInterrupt
 import logging
 
 
@@ -28,7 +30,7 @@ def init_raven_client(dsn):
     _sentry = raven.Client(
         dsn=dsn,
         transport=raven.transport.threaded_requests.ThreadedRequestsHTTPTransport,
-        ignore_exceptions={'KeyboardInterrupt'},
+        ignore_exceptions={KeyboardInterrupt, HTTPException},
         logging=True,
     )
     sentry_errors_logger = logging.getLogger("sentry.errors")
