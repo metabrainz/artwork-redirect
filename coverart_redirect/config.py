@@ -1,7 +1,7 @@
 # Copyright (C) 2011 Lukas Lalinsky
 # Distributed under the MIT license, see the LICENSE file for details.
 
-import ConfigParser
+import configparser
 from sqlalchemy.engine.url import URL
 
 
@@ -72,7 +72,7 @@ class Config(object):
 
     def __init__(self, path, static_path, test=False):
         self.static_path = static_path
-        parser = ConfigParser.RawConfigParser()
+        parser = configparser.RawConfigParser()
         parser.read(path)
         self.database = DatabaseConfig()
         if test:

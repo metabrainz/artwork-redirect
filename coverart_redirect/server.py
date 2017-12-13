@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 # Copyright (C) 2011 Lukas Lalinsky
 # Copyright (C) 2011 Robert Kaye
 # Copyright (C) 2012 Kuno Woudt

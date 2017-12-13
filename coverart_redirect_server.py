@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (C) 2011 Lukas Lalinsky
 # Copyright (C) 2011, 2012 MetaBrainz Foundation
@@ -21,7 +21,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from __future__ import print_function
 import os
 import sys
 from coverart_redirect.server import Server

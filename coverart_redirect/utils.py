@@ -42,7 +42,7 @@ class LocalSysLogHandler(Handler):
     def __init__(self, ident=None, facility=syslog.LOG_USER, log_pid=False):
         Handler.__init__(self)
         self.facility = facility
-        if isinstance(facility, basestring):
+        if isinstance(facility, str):
             self.facility = self.facility_names[facility]
         options = 0
         if log_pid:
@@ -57,12 +57,12 @@ class LocalSysLogHandler(Handler):
     def emit(self, record):
         try:
             msg = self.format(record)
-            if isinstance(msg, unicode):
+            if isinstance(msg, str):
                 msg = msg.encode('utf-8')
             priority = self.priority_map[record.levelname]
             for m in msg.splitlines():
                 syslog.syslog(self.facility | priority, m)
-        except StandardError:
+        except Exception:
             self.handleError(record)
 
 

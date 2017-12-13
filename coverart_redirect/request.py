@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 # Copyright (C) 2011 Lukas Lalinsky
 # Copyright (C) 2011 Robert Kaye
 # Copyright (C) 2012, 2015 MetaBrainz Foundation Inc.
@@ -182,7 +180,7 @@ class CoverArtRedirect(object):
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
-            return u"%s%s.%s" % (unicode(row[0]), thumbnail, row[1])
+            return "%s%s.%s" % (str(row[0]), thumbnail, row[1])
 
         raise NotFound("No %s cover image found for release with identifier %s" % (
             type.lower(), mbid))
@@ -214,7 +212,7 @@ class CoverArtRedirect(object):
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
-            return u"%s%s.%s" % (unicode(row[0]), thumbnail, row[1])
+            return "%s%s.%s" % (str(row[0]), thumbnail, row[1])
 
         raise NotFound("cover image with id %s not found" % (image_id))
 
@@ -336,7 +334,7 @@ class CoverArtRedirect(object):
             filename = self.resolve_image_id(
                 mbid, filename, self.thumbnail(filename))
 
-        return self.handle_redirect(request, mbid, filename.encode('utf8'))
+        return self.handle_redirect(request, mbid, filename)
 
     def handle_release_group(self, request, mbid, filename):
         release_mbid = self.resolve_release_group_cover_art(mbid)
@@ -346,7 +344,7 @@ class CoverArtRedirect(object):
             filename = self.resolve_cover(
                 release_mbid, 'Front', self.thumbnail(filename))
             return self.handle_redirect(
-                request, release_mbid, filename.encode('utf8'))
+                request, release_mbid, filename)
         else:
             return Response(
                 status=400,

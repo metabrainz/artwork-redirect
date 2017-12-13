@@ -1,4 +1,4 @@
-FROM metabrainz/python:2.7
+FROM metabrainz/python:3.6
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

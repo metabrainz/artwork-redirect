@@ -3,7 +3,6 @@ import raven.transport.threaded_requests
 from raven.handlers.logging import SentryHandler
 from raven.conf import setup_logging
 from werkzeug.exceptions import HTTPException
-from exceptions import KeyboardInterrupt
 import logging
 
 
