@@ -24,33 +24,17 @@
 import os
 import sys
 from coverart_redirect.server import Server
-from coverart_redirect.config import Config
-from coverart_redirect.loggers import init_raven_client
+from coverart_redirect.config import load_config
 
 
-def production(addr, port, application, sentry_dsn=None):
-    import cherrypy
-    from cherrypy import wsgiserver
-
-    if sentry_dsn:
-        init_raven_client(sentry_dsn)
-
-    server = wsgiserver.CherryPyWSGIServer((addr, port), application)
-
-    cherrypy.config.update({
-        'log.screen': True,
-        "server.thread_pool": 10
-    })
-    cherrypy.log("server starting")
-
-    try:
-        server.start()
-    except KeyboardInterrupt:
-        server.stop()
-
-
-def development(addr, port, application):
+def development():
     from werkzeug import run_simple
+
+    config = load_config()
+    application = Server(config)
+
+    addr = config.listen.addr
+    port = int(config.listen.port)
 
     run_simple(addr, port, application, use_reloader=True,
                extra_files=None, reloader_interval=1, threaded=False,
@@ -64,39 +48,17 @@ syntax: python coverart_redirect_server.py [options]
 options:
 
     --help               This message
-    -r, --development    Use werkzeug development server (restarts on source code changes)
 
 """)
     sys.exit(0)
 
 
-def load_config(test=False):
-    """Load configuration from coverart_redirect.conf.
-
-    If test=True will take the database configuration from the
-    [testdatabase] section instead of the [database] section.
-    """
-
-    config_path = os.path.dirname(os.path.abspath(__file__)) + '/coverart_redirect.conf'
-    static_path = os.path.dirname(os.path.abspath(__file__)) + '/static'
-
-    return Config(config_path, static_path, test)
-
-
 if __name__ == '__main__':
-    config = load_config()
-    application = Server(config)
-
-    addr = config.listen.addr
-    port = int(config.listen.port)
-
     option = None
     if len(sys.argv) > 1:
         option = sys.argv.pop()
 
     if option == '--help':
         print_help()
-    elif option == '-r' or option == '--development':
-        development(addr, port, application)
     else:
-        production(addr, port, application, sentry_dsn=config.sentry.dsn)
+        development()

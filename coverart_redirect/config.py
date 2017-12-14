@@ -2,6 +2,7 @@
 # Distributed under the MIT license, see the LICENSE file for details.
 
 import configparser
+from os import path
 from sqlalchemy.engine.url import URL
 
 
@@ -85,3 +86,16 @@ class Config(object):
         self.s3.read(parser, 's3')
         self.sentry = SentryConfig()
         self.sentry.read(parser, 'sentry')
+
+
+def load_config(test=False):
+    """Load configuration from coverart_redirect.conf.
+
+    If test=True will take the database configuration from the
+    [testdatabase] section instead of the [database] section.
+    """
+
+    config_path = path.join(path.dirname(path.abspath(__file__)), '..', 'coverart_redirect.conf')
+    static_path = path.join(path.dirname(path.abspath(__file__)), '..', 'static')
+
+    return Config(config_path, static_path, test)

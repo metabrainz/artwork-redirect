@@ -32,6 +32,8 @@ RUN ./node_modules/.bin/lessc ./static/css/main.less > ./static/css/main.css
 
 # Consul-template is already installed with install_consul_template.sh
 COPY ./docker/prod/redirect.service /etc/sv/redirect/run
+COPY ./docker/prod/uwsgi.ini /etc/uwsgi/
+
 RUN chmod 755 /etc/sv/redirect/run && \
     ln -sf /etc/sv/redirect /etc/service/
 

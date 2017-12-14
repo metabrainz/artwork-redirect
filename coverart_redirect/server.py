@@ -21,8 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import logging
 import traceback
-import cherrypy
 import sqlalchemy
 import werkzeug.exceptions
 import werkzeug.urls
@@ -69,7 +69,7 @@ class Server(object):
             return e
         except:  # FIXME: Exception clause is too broad
             get_sentry().captureException()
-            cherrypy.log("Caught exception\n" + traceback.format_exc())
+            logging.error("Caught exception\n" + traceback.format_exc())
             return werkzeug.wrappers.Response(
                 status=500,
                 response=["Whoops. Our bad.\n"],
