@@ -1,4 +1,4 @@
-FROM metabrainz/python:3.6
+FROM metabrainz/python:3.6-1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -30,14 +30,12 @@ RUN ./node_modules/.bin/lessc ./static/css/main.less > ./static/css/main.css
 # Services #
 ############
 
-# Consul-template is already installed with install_consul_template.sh
-COPY ./docker/prod/redirect.service /etc/sv/redirect/run
+COPY ./docker/prod/redirect.service /etc/service/redirect/run
 COPY ./docker/prod/uwsgi.ini /etc/uwsgi/
 
-RUN chmod 755 /etc/sv/redirect/run && \
-    ln -sf /etc/sv/redirect /etc/service/
+RUN chmod 755 /etc/service/redirect/run
 
 # Configuration
-COPY ./docker/prod/consul-template.conf /etc/consul-template.conf
+COPY ./docker/prod/consul-template-redirect.conf /etc/
 
 EXPOSE 8080
