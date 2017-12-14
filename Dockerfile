@@ -7,24 +7,29 @@ RUN apt-get update \
                        libpq-dev \
                        libffi-dev \
                        libssl-dev \
+                       sudo \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /code
-WORKDIR /code
+RUN useradd --create-home --shell /bin/bash caa
+
+WORKDIR /home/caa/redirect
+RUN chown caa:caa /home/caa/redirect
 
 # Python dependencies
-RUN pip install -U cffi
-COPY requirements.txt /code/
-RUN pip install -r requirements.txt
+RUN sudo -E -H -u caa pip install --user -U cffi
+COPY requirements.txt ./
+RUN sudo -E -H -u caa pip install --user -r requirements.txt
 
 # Node dependencies
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install -y nodejs
-COPY ./package.json /code/
-RUN npm install
+COPY package.json ./
+RUN sudo -E -H -u caa npm install
 
-COPY . /code/
-RUN ./node_modules/.bin/lessc ./static/css/main.less > ./static/css/main.css
+COPY . ./
+RUN sudo -E -H -u caa ./node_modules/.bin/lessc \
+        static/css/main.less > static/css/main.css
+RUN chown -R caa:caa ./
 
 ############
 # Services #

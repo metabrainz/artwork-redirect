@@ -30,7 +30,6 @@ services:
     environment:
       DEPLOY_ENV: prod
     volumes:
-      - ../:/code
+      - ../:/home/caa/redirect
     ports:
       - "8080:8080"
-
