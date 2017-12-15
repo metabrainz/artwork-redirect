@@ -7,11 +7,13 @@ services:
     ports:
       - "8500:8500"
 
-  consulagent:
-    command: -server -bootstrap
-    image: progrium/consul
-    ports:
-      - "8500:8500"
+  registrator:
+    command: -cleanup consul://consulagent:8500
+    image: gliderlabs/registrator:v7
+    links:
+      - consulagent
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
 
   git2consul:
     command: --endpoint consulagent --port 8500 --config-file /etc/git2consul.d/config.json
@@ -25,11 +27,21 @@ services:
 
   caa-redirect:
     build:
-        context: ..
-        dockerfile: ./Dockerfile
+      context: ..
+      dockerfile: ./Dockerfile
     environment:
+      CONSUL_HOST: consulagent
       DEPLOY_ENV: prod
+    links:
+      - consulagent
     volumes:
       - ../:/home/caa/redirect
     ports:
       - "8080:8080"
+
+  postgres-master:
+    environment:
+      SERVICE_54321_NAME: pgbouncer-master
+    image: metabrainz/musicbrainz-test-database:schema-change-2017-q2
+    ports:
+      - "5432:54321"
