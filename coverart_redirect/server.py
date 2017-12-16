@@ -30,6 +30,7 @@ import werkzeug.wrappers
 from contextlib import closing
 from coverart_redirect.request import CoverArtRedirect
 from coverart_redirect.loggers import get_sentry
+from sqlalchemy.pool import NullPool
 
 
 class Request(werkzeug.wrappers.Request):
@@ -55,7 +56,9 @@ class Server(object):
 
     def __init__(self, config):
         self.config = config
-        self.engine = sqlalchemy.create_engine(self.config.database.create_url())
+        self.engine = sqlalchemy.create_engine(
+            self.config.database.create_url(),
+            poolclass=NullPool)
 
     @Request.application
     def __call__(self, request):
