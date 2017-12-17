@@ -1,6 +1,8 @@
 *.pyc
 *~
-dist
-coverart_redirect.conf
-node_modules
+.cache
+.coverage
 /data
+coverart_redirect.conf
+dist
+node_modules

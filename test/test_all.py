@@ -54,21 +54,21 @@ class All(unittest.TestCase):
 
     def verifyRedirect(self, src, dst, **kwargs):
         response = self.server.get(src, **kwargs)
-        self.assertEqual(response.status, b'307 TEMPORARY REDIRECT')
+        self.assertEqual(response.status, '307 TEMPORARY REDIRECT')
         self.assertEqual(response.headers['Location'], dst)
-        self.assertEqual(response.data, b"See: %s\n" % (dst))
+        self.assertEqual(response.data, b"See: %s\n" % (dst.encode('utf-8')))
 
     def test_caa_index(self):
         response = self.server.get('/')
 
-        self.assertEqual(response.status, b'200 OK')
-        self.assertEqual(response.mimetype, b'text/html')
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(response.mimetype, 'text/html')
         self.assertTrue(b'<title>Cover Art Archive</title>' in response.data)
         self.assertTrue(b'Images in the archive are curated' in response.data)
 
     def test_front(self):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/front')
-        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No front cover image found for' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-100000001'
@@ -83,7 +83,7 @@ class All(unittest.TestCase):
 
     def test_back(self):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/back')
-        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No back cover image found for' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
@@ -99,7 +99,7 @@ class All(unittest.TestCase):
     def test_image(self):
 
         response = self.server.get('/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg')
-        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'cover image with id 444444444 not found' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
@@ -112,11 +112,11 @@ class All(unittest.TestCase):
     def test_resolve_image_id_with_invalid_cover_image_id(self):
         _id = "invalid"
         response = self.server.get("release/353710ec-1509-4df9-8ce2-9bd5011e3b80/" + _id)
-        self.assertEqual(response.status, b'400 BAD REQUEST')
+        self.assertEqual(response.status, '400 BAD REQUEST')
 
     def test_release_index(self):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/')
-        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No cover art found for' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
@@ -149,11 +149,11 @@ class All(unittest.TestCase):
     def test_release_group(self):
 
         response = self.server.get('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924')
-        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No cover art found for release group' in response.data)
 
         response = self.server.get('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924/front')
-        self.assertEqual(response.status, b'404 NOT FOUND')
+        self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No cover art found for release group' in response.data)
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-100000001'
@@ -189,7 +189,7 @@ class All(unittest.TestCase):
         ]:
             response = self.server.open(path=path,
                                         method='OPTIONS')
-            self.assertEqual(response.status, b'200 OK')
+            self.assertEqual(response.status, '200 OK')
             self.assertTrue('Allow' in response.headers)
 
         for path in [
@@ -199,20 +199,20 @@ class All(unittest.TestCase):
         ]:
             response = self.server.open(path=path,
                                         method='OPTIONS')
-            self.assertEqual(response.status, b'400 BAD REQUEST')
+            self.assertEqual(response.status, '400 BAD REQUEST')
 
     def test_options_method_asterisk(self):
         response = self.server.open(path='/*',
                                     method='OPTIONS')
-        self.assertEqual(response.status, b'200 OK')
+        self.assertEqual(response.status, '200 OK')
         self.assertTrue('Allow' in response.headers)
 
         response = self.server.open(path='/*foo',
                                     method='OPTIONS')
-        self.assertEqual(response.status, b'400 BAD REQUEST')
+        self.assertEqual(response.status, '400 BAD REQUEST')
 
     def test_options_501_on_http_10(self):
         env = EnvironBuilder(path='/*foo', method='OPTIONS')
         env.server_protocol = 'HTTP/1.0'
         response = self.server.open(env)
-        self.assertEqual(response.status, b'501 NOT IMPLEMENTED')
+        self.assertEqual(response.status, '501 NOT IMPLEMENTED')

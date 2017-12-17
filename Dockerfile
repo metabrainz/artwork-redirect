@@ -1,4 +1,4 @@
-FROM metabrainz/python:2.7
+FROM metabrainz/python:3.6-1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -7,35 +7,40 @@ RUN apt-get update \
                        libpq-dev \
                        libffi-dev \
                        libssl-dev \
+                       sudo \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /code
-WORKDIR /code
+RUN useradd --create-home --shell /bin/bash caa
+
+WORKDIR /home/caa/redirect
+RUN chown caa:caa /home/caa/redirect
 
 # Python dependencies
-RUN pip install -U cffi
-COPY requirements.txt /code/
-RUN pip install -r requirements.txt
+RUN sudo -E -H -u caa pip install --user -U cffi
+COPY requirements.txt ./
+RUN sudo -E -H -u caa pip install --user -r requirements.txt
 
 # Node dependencies
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install -y nodejs
-COPY ./package.json /code/
-RUN npm install
+COPY package.json package-lock.json ./
+RUN sudo -E -H -u caa npm install
 
-COPY . /code/
-RUN ./node_modules/.bin/lessc ./static/css/main.less > ./static/css/main.css
+COPY . ./
+RUN sudo -E -H -u caa ./node_modules/.bin/lessc \
+        static/css/main.less > static/css/main.css
+RUN chown -R caa:caa ./
 
 ############
 # Services #
 ############
 
-# Consul-template is already installed with install_consul_template.sh
-COPY ./docker/prod/redirect.service /etc/sv/redirect/run
-RUN chmod 755 /etc/sv/redirect/run && \
-    ln -sf /etc/sv/redirect /etc/service/
+COPY ./docker/prod/redirect.service /etc/service/redirect/run
+COPY ./docker/prod/uwsgi.ini /etc/uwsgi/
+
+RUN chmod 755 /etc/service/redirect/run
 
 # Configuration
-COPY ./docker/prod/consul-template.conf /etc/consul-template.conf
+COPY ./docker/prod/consul-template-redirect.conf /etc/
 
 EXPOSE 8080

@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 # Copyright (C) 2011 Lukas Lalinsky
 # Copyright (C) 2011 Robert Kaye
 # Copyright (C) 2012 Kuno Woudt
@@ -23,8 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import logging
 import traceback
-import cherrypy
 import sqlalchemy
 import werkzeug.exceptions
 import werkzeug.urls
@@ -32,6 +30,7 @@ import werkzeug.wrappers
 from contextlib import closing
 from coverart_redirect.request import CoverArtRedirect
 from coverart_redirect.loggers import get_sentry
+from sqlalchemy.pool import NullPool
 
 
 class Request(werkzeug.wrappers.Request):
@@ -57,7 +56,9 @@ class Server(object):
 
     def __init__(self, config):
         self.config = config
-        self.engine = sqlalchemy.create_engine(self.config.database.create_url())
+        self.engine = sqlalchemy.create_engine(
+            self.config.database.create_url(),
+            poolclass=NullPool)
 
     @Request.application
     def __call__(self, request):
@@ -71,7 +72,7 @@ class Server(object):
             return e
         except:  # FIXME: Exception clause is too broad
             get_sentry().captureException()
-            cherrypy.log("Caught exception\n" + traceback.format_exc())
+            logging.error("Caught exception\n" + traceback.format_exc())
             return werkzeug.wrappers.Response(
                 status=500,
                 response=["Whoops. Our bad.\n"],
