@@ -96,7 +96,6 @@ class CoverArtRedirect(object):
         cover art entries, if not respond with a 404 to the request.
         """
 
-        mbid = mbid.lower()
         query = """
             SELECT release.gid
               FROM musicbrainz.release
@@ -120,7 +119,6 @@ class CoverArtRedirect(object):
         NotFound exception.
         """
 
-        mbid = mbid.lower()
         query = """
         SELECT DISTINCT ON (release.release_group)
           release.gid AS mbid
