@@ -23,7 +23,7 @@ RUN sudo -E -H -u caa pip install --user -r requirements.txt
 # Node dependencies
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install -y nodejs
-COPY package.json ./
+COPY package.json package-lock.json ./
 RUN sudo -E -H -u caa npm install
 
 COPY . ./
