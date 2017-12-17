@@ -1,3 +1,5 @@
+.cache
+.coverage
 .git
 
 # Byte-compiled / optimized / DLL files
