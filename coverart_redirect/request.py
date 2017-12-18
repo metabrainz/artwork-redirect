@@ -55,7 +55,7 @@ class CoverArtRedirect(object):
         if '-' not in filename:
             return ""
 
-        id, size = filename.split('-')
+        id, size = filename.rsplit('-', 1)
 
         if size.startswith('250'):
             return "-250"
