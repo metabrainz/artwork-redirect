@@ -196,6 +196,7 @@ class All(unittest.TestCase):
             '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/foo',
             '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front-100',
             '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/-250',
+            '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front-back-500',
         ]:
             response = self.server.open(path=path,
                                         method='OPTIONS')
