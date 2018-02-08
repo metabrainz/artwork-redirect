@@ -27,3 +27,4 @@ port=8080
 
 [s3]
 prefix={{template "KEY" "s3_prefix"}}
+cors_prefix={{template "KEY" "s3_cors_prefix"}}
