@@ -80,6 +80,8 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '/front-250.jpg', expected + '_thumb250.jpg')
         self.verifyRedirect(req + '/front-500',     expected + '_thumb500.jpg')
         self.verifyRedirect(req + '/front-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/front-1200',     expected + '_thumb1200.jpg')
+        self.verifyRedirect(req + '/front-1200.jpg', expected + '_thumb1200.jpg')
 
     def test_back(self):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/back')
@@ -95,6 +97,8 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '/back-250.jpg', expected + '_thumb250.jpg')
         self.verifyRedirect(req + '/back-500',     expected + '_thumb500.jpg')
         self.verifyRedirect(req + '/back-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/back-1200',     expected + '_thumb1200.jpg')
+        self.verifyRedirect(req + '/back-1200.jpg', expected + '_thumb1200.jpg')
 
     def test_image(self):
 
@@ -108,6 +112,7 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '.jpg',     expected + '.jpg')
         self.verifyRedirect(req + '-250.jpg', expected + '_thumb250.jpg')
         self.verifyRedirect(req + '-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '-1200.jpg', expected + '_thumb1200.jpg')
 
     def test_resolve_image_id_with_invalid_cover_image_id(self):
         _id = "invalid"
@@ -165,6 +170,8 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '/front-250.jpg', expected + '_thumb250.jpg')
         self.verifyRedirect(req + '/front-500',     expected + '_thumb500.jpg')
         self.verifyRedirect(req + '/front-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/front-1200',     expected + '_thumb1200.jpg')
+        self.verifyRedirect(req + '/front-1200.jpg', expected + '_thumb1200.jpg')
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
 
@@ -197,6 +204,7 @@ class All(unittest.TestCase):
             '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front-100',
             '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/-250',
             '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/front-back-500',
+            '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/1200-front',
         ]:
             response = self.server.open(path=path,
                                         method='OPTIONS')

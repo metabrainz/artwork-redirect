@@ -61,6 +61,8 @@ class CoverArtRedirect(object):
             return "-250"
         elif size.startswith('500'):
             return "-500"
+        elif size.startswith('1200'):
+            return "-1200"
         else:
             return ""
 
@@ -319,7 +321,7 @@ class CoverArtRedirect(object):
 
                 if len(_split) > 1:
                     size = _split[1]
-                    if size not in ('250', '500'):
+                    if size not in ('250', '500', '1200'):
                         raise BadRequest()
 
         return Response(status=200, headers=[("Allow", "GET, HEAD, OPTIONS")])
@@ -362,6 +364,7 @@ class CoverArtRedirect(object):
 
         filename = re.sub("-250.(jpg|gif|png|pdf)", "_thumb250.jpg", filename)
         filename = re.sub("-500.(jpg|gif|png|pdf)", "_thumb500.jpg", filename)
+        filename = re.sub("-1200.(jpg|gif|png|pdf)", "_thumb1200.jpg", filename)
 
         url = "%s/mbid-%s/mbid-%s-%s" % (self.config.s3.prefix, mbid, mbid, filename)
         return request.redirect(code=307, location=url)
