@@ -65,15 +65,15 @@ class Server(object):
         try:
             with closing(self.engine.connect()) as conn:
                 response = CoverArtRedirect(self.config, conn).handle(request)
-            response.headers.add('Access-Control-Allow-Origin', '*')
-            return response
         except werkzeug.exceptions.HTTPException as e:
             get_sentry().captureException()
-            return e
+            response = e.get_response()
         except:  # FIXME: Exception clause is too broad
             get_sentry().captureException()
             logging.error("Caught exception\n" + traceback.format_exc())
-            return werkzeug.wrappers.Response(
+            response = werkzeug.wrappers.Response(
                 status=500,
                 response=["Whoops. Our bad.\n"],
             )
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response

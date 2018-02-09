@@ -70,6 +70,7 @@ class All(unittest.TestCase):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/front')
         self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No front cover image found for' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-100000001'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
@@ -87,6 +88,7 @@ class All(unittest.TestCase):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/back')
         self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No back cover image found for' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
@@ -105,6 +107,7 @@ class All(unittest.TestCase):
         response = self.server.get('/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg')
         self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'cover image with id 444444444 not found' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-999999999'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/999999999'
@@ -123,6 +126,7 @@ class All(unittest.TestCase):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/')
         self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No cover art found for' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80'
         req = '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80'
@@ -156,10 +160,12 @@ class All(unittest.TestCase):
         response = self.server.get('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924')
         self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No cover art found for release group' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
 
         response = self.server.get('/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924/front')
         self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No cover art found for release group' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
 
         expected = 'http://archive.org/download/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80/mbid-353710ec-1509-4df9-8ce2-9bd5011e3b80-100000001'
         req = '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b'
@@ -198,6 +204,7 @@ class All(unittest.TestCase):
                                         method='OPTIONS')
             self.assertEqual(response.status, '200 OK')
             self.assertTrue('Allow' in response.headers)
+            self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
 
         for path in [
             '/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/foo',
@@ -209,6 +216,7 @@ class All(unittest.TestCase):
             response = self.server.open(path=path,
                                         method='OPTIONS')
             self.assertEqual(response.status, '400 BAD REQUEST')
+            self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
 
     def test_options_method_asterisk(self):
         response = self.server.open(path='/*',
