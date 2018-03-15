@@ -9,13 +9,9 @@ from sqlalchemy.engine.url import URL
 class S3Config(object):
     def __init__(self):
         self.prefix = None
-        self.cors_prefix = None
 
     def read(self, parser, section):
         self.prefix = parser.get(section, 'prefix')
-        self.cors_prefix = parser.get(section, 'cors_prefix', fallback=None)
-        if self.cors_prefix is None:
-            self.cors_prefix = self.prefix
 
 
 class SentryConfig(object):

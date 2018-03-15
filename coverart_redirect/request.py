@@ -274,14 +274,9 @@ class CoverArtRedirect(object):
     def handle_dir(self, request, mbid):
         """When the user requests no file, redirect to the root of the bucket
         to give the user an index of what is in the bucket.
-
-        The IA emits CORS-friendly headers for JPG files, but no such blanket
-        permission is given for JSON. However, they have a dedicated /cors/
-        endpoint which can be used in place of /download/. It's configured as
-        `cors_prefix`, but this falls back to `prefix` if left unspecified.
         """
 
-        index_url = "%s/mbid-%s/index.json" % (self.config.s3.cors_prefix, mbid)
+        index_url = "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)
         return request.redirect(code=307, location=index_url)
 
     def handle_options(self, request, entity):
