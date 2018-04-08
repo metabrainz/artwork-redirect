@@ -48,7 +48,7 @@ class CoverArtRedirect(object):
         """Check if an MBID is syntactically valid. If not, raise a BadRequest."""
         if not mbid:
             raise BadRequest('no MBID specified')
-        if not re.match('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', mbid):
+        if not re.fullmatch('^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', mbid):
             raise BadRequest('invalid MBID specified')
 
     def thumbnail(self, filename):

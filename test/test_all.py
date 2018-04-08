@@ -233,3 +233,22 @@ class All(unittest.TestCase):
         env.server_protocol = 'HTTP/1.0'
         response = self.server.open(env)
         self.assertEqual(response.status, '501 NOT IMPLEMENTED')
+
+    def test_mbid_validation(self):
+        # Missing digit
+        response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e6366')
+        self.assertEqual(response.status, '400 BAD REQUEST')
+        self.assertTrue(b'invalid MBID specified' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
+
+        # Percent-encoded newline at the end (%0A)
+        response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669%0A')
+        self.assertEqual(response.status, '400 BAD REQUEST')
+        self.assertTrue(b'invalid MBID specified' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
+
+        # Extra digits prefixed
+        response = self.server.get('/release/000098f08de3-c91c-4180-a961-06c205e63669')
+        self.assertEqual(response.status, '400 BAD REQUEST')
+        self.assertTrue(b'invalid MBID specified' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
