@@ -31,7 +31,7 @@ you can simply stop the server (Ctrl + C) and run the command above again.
 
 ### Option 2: Manual
 
-CAA redirect server works with *Python 3*, so make sure that you have it installed. Create a
+CAA redirect server works with *Python 3.8+*, so make sure that you have it installed. Create a
 [virtual environment](https://packaging.python.org/tutorials/installing-packages/#creating-virtual-environments),
 if necessary.
 
