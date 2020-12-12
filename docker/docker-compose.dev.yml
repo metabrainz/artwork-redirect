@@ -12,4 +12,4 @@ services:
       - "8080:8081"
 
   mbs_db_test:
-    image: metabrainz/musicbrainz-test-database:schema-change-2017-q2
+    image: metabrainz/musicbrainz-test-database:production

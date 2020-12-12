@@ -27,8 +27,6 @@ INSERT INTO musicbrainz.edit (id, editor, type, status, expire_time)
 INSERT INTO musicbrainz.edit_data (edit, data)
     VALUES (1, '{"foo":"bar"}');
 
-INSERT INTO cover_art_archive.image_type (mime_type, suffix) VALUES ('image/jpeg', 'jpg');
-
 INSERT INTO cover_art_archive.cover_art (id, release, edit, ordering, mime_type)
     VALUES (100000001, 1, 1, 1, 'image/jpeg'), (999999999, 1, 1, 1, 'image/jpeg');
 

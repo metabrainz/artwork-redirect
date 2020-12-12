@@ -42,6 +42,6 @@ services:
   postgres-master:
     environment:
       SERVICE_54321_NAME: pgbouncer-master
-    image: metabrainz/musicbrainz-test-database:schema-change-2017-q2
+    image: metabrainz/musicbrainz-test-database:production
     ports:
       - "5432:54321"
