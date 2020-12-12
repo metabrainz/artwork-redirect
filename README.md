@@ -1,8 +1,8 @@
-Cover Art Archive URL redirect service
-======================================
+Artwork URL redirect service
+============================
 
-This service will redirect from `coverartarchive.org` URLs to `archive.org` URLs, taking into account MBID redirects
-caused by release merges.
+This service will redirect from `coverartarchive.org` URLs to `archive.org`
+URLs, taking into account MBID redirects caused by release merges.
 
 For example, this URL:
 
@@ -31,8 +31,9 @@ you can simply stop the server (Ctrl + C) and run the command above again.
 
 ### Option 2: Manual
 
-CAA redirect server works with *Python 3.8+*, so make sure that you have it installed. Create a
-[virtual environment](https://packaging.python.org/tutorials/installing-packages/#creating-virtual-environments),
+artwork-redirect works with *Python 3.8+*, so make sure that you have it
+installed. Create a
+[virtual environment](https://packaging.python.org/tutorials/installing-packages/#creating-virtual-environments)
 if necessary.
 
 Install all required packages using [pip](https://pip.pypa.io):
