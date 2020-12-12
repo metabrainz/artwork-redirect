@@ -1,6 +1,6 @@
-coverage==4.0.3
-pytest==3.0.4
-pytest-cov==2.4.0
+coverage==5.3
+pytest==6.1.2
+pytest-cov==2.10.1
 psycopg2==2.8.6
 raven==6.1.0
 requests==2.20.0
