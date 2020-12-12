@@ -12,7 +12,6 @@ should redirect to:
 
     https://archive.org/download/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a/mbid-5b07fe49-39a9-47a6-97b3-e5005992fb2a-2270157148.jpg
 
-
 ## Development setup
 
 There are two ways of setting up the server: with and without Docker. First option might be easier if you are just
@@ -39,7 +38,7 @@ if necessary.
 Install all required packages using [pip](https://pip.pypa.io):
 
     $ pip install -r requirements.txt
-    
+
 Copy *config.default.ini* to *config.ini* and adjust configuration values. You'd want to set up
 a connection to the instance of PostgreSQL with a MusicBrainz database that you should already have running.
 
