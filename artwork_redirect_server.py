@@ -23,8 +23,8 @@
 
 import os
 import sys
-from coverart_redirect.server import Server
-from coverart_redirect.config import load_config
+from artwork_redirect.server import Server
+from artwork_redirect.config import load_config
 
 
 def development():
@@ -43,7 +43,7 @@ def development():
 
 def print_help():
     print("""
-syntax: python coverart_redirect_server.py [options]
+syntax: python artwork_redirect_server.py [options]
 
 options:
 

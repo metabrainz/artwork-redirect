@@ -3,9 +3,9 @@
 
 # Simple WSGI module intended to be used by uWSGI.
 
-from coverart_redirect.server import Server
-from coverart_redirect.config import load_config
-from coverart_redirect.loggers import init_raven_client
+from artwork_redirect.server import Server
+from artwork_redirect.config import load_config
+from artwork_redirect.loggers import init_raven_client
 
 
 config = load_config()

@@ -1,7 +1,7 @@
 {
-  "name": "coverart_redirect",
+  "name": "artwork-redirect",
   "version": "0.0.0",
-  "description": "package.json for keeping track of nodejs dependencies for coverart_redirect",
+  "description": "package.json for keeping track of nodejs dependencies for artwork-redirect",
   "repository": {
     "type": "git",
     "url": "https://github.com/metabrainz/coverart_redirect.git"

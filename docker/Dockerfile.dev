@@ -27,4 +27,4 @@ COPY . /code/
 RUN cp config.default.ini config.ini
 RUN ./node_modules/.bin/lessc ./static/css/main.less > ./static/css/main.css
 
-CMD ["python", "coverart_redirect_server.py"]
+CMD ["python", "artwork_redirect_server.py"]

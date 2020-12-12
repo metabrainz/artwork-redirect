@@ -28,8 +28,8 @@ import werkzeug.exceptions
 import werkzeug.urls
 import werkzeug.wrappers
 from contextlib import closing
-from coverart_redirect.request import CoverArtRedirect
-from coverart_redirect.loggers import get_sentry
+from artwork_redirect.request import CoverArtRedirect
+from artwork_redirect.loggers import get_sentry
 from sqlalchemy.pool import NullPool
 
 

@@ -32,8 +32,8 @@ sys.path.append(_root)
 import codecs
 import unittest
 from contextlib import closing
-from coverart_redirect_server import load_config
-from coverart_redirect.server import Server
+from artwork_redirect_server import load_config
+from artwork_redirect.server import Server
 from werkzeug.wrappers import Response
 from werkzeug.test import Client, EnvironBuilder
 

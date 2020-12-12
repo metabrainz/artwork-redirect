@@ -43,7 +43,7 @@ Install all required packages using [pip](https://pip.pypa.io):
 Copy *config.default.ini* to *config.ini* and adjust configuration values. You'd want to set up
 a connection to the instance of PostgreSQL with a MusicBrainz database that you should already have running.
 
-Finally, run the *coverart_redirect_server.py* script to start the server.
+Finally, run the *artwork_redirect_server.py* script to start the server.
 
 All logging goes to stdout, including stacktraces, so its suitable for running inside of daemontools.
 

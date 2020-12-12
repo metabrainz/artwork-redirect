@@ -26,8 +26,8 @@ from os.path import splitext
 from werkzeug.exceptions import BadRequest, NotImplemented, NotFound
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import pop_path_info
-from coverart_redirect.utils import statuscode
-from coverart_redirect.loggers import get_sentry
+from artwork_redirect.utils import statuscode
+from artwork_redirect.loggers import get_sentry
 from wsgiref.util import shift_path_info
 
 
