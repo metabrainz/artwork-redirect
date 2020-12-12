@@ -24,7 +24,7 @@ COPY package.json package-lock.json /code/
 RUN npm install
 
 COPY . /code/
-RUN cp coverart_redirect.conf.dist coverart_redirect.conf
+RUN cp config.default.ini config.ini
 RUN ./node_modules/.bin/lessc ./static/css/main.less > ./static/css/main.css
 
 CMD ["python", "coverart_redirect_server.py"]

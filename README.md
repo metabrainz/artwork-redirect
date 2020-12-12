@@ -40,7 +40,7 @@ Install all required packages using [pip](https://pip.pypa.io):
 
     $ pip install -r requirements.txt
     
-Copy *coverart_redirect.conf.dist* to *coverart_redirect.conf* and adjust configuration values. You'd want to set up
+Copy *config.default.ini* to *config.ini* and adjust configuration values. You'd want to set up
 a connection to the instance of PostgreSQL with a MusicBrainz database that you should already have running.
 
 Finally, run the *coverart_redirect_server.py* script to start the server.

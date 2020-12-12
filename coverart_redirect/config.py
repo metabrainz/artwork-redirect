@@ -89,13 +89,13 @@ class Config(object):
 
 
 def load_config(test=False):
-    """Load configuration from coverart_redirect.conf.
+    """Load configuration from config.ini.
 
     If test=True will take the database configuration from the
     [testdatabase] section instead of the [database] section.
     """
 
-    config_path = path.join(path.dirname(path.abspath(__file__)), '..', 'coverart_redirect.conf')
+    config_path = path.join(path.dirname(path.abspath(__file__)), '..', 'config.ini')
     static_path = path.join(path.dirname(path.abspath(__file__)), '..', 'static')
 
     return Config(config_path, static_path, test)

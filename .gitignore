@@ -3,6 +3,6 @@
 .cache
 .coverage
 /data
-coverart_redirect.conf
+config.ini
 dist
 node_modules

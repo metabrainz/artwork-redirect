@@ -22,7 +22,7 @@ COPY requirements.txt /code/
 RUN pip install -r requirements.txt
 
 COPY . /code/
-RUN cp coverart_redirect.conf.dist coverart_redirect.conf
+RUN cp config.default.ini config.ini
 
 CMD dockerize -wait tcp://mbs_db_test:5432 -timeout 200s \
     sleep 5 && py.test --junitxml=/data/test_report.xml \
