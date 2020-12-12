@@ -9,5 +9,5 @@
 cd "$(dirname "${BASH_SOURCE[0]}")/../"
 
 TAG_PART=${1:-latest}
-docker build -t metabrainz/caa-redirect:$TAG_PART .
-docker push metabrainz/caa-redirect:$TAG_PART
+docker build -t metabrainz/artwork-redirect:$TAG_PART .
+docker push metabrainz/artwork-redirect:$TAG_PART

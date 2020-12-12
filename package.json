@@ -4,7 +4,7 @@
   "description": "package.json for keeping track of nodejs dependencies for artwork-redirect",
   "repository": {
     "type": "git",
-    "url": "https://github.com/metabrainz/coverart_redirect.git"
+    "url": "https://github.com/metabrainz/artwork-redirect.git"
   },
   "dependencies": {
     "less": "2.7.1",

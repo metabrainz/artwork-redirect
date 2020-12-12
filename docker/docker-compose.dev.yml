@@ -2,7 +2,7 @@
 version: "2"
 services:
 
-  caa_redirect:
+  artwork-redirect:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile.dev

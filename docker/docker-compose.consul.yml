@@ -22,10 +22,10 @@ services:
     links:
       - consulagent
     volumes:
-      - ../:/tmp/caa-redirect.git
+      - ../:/tmp/artwork-redirect.git
       - ./git2consul:/etc/git2consul.d
 
-  caa-redirect:
+  artwork-redirect:
     build:
       context: ..
       dockerfile: ./Dockerfile
@@ -35,7 +35,7 @@ services:
     links:
       - consulagent
     volumes:
-      - ../:/home/caa/redirect
+      - ../:/home/art/artwork-redirect
     ports:
       - "8080:8080"
 
