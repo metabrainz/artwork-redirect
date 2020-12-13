@@ -59,7 +59,7 @@ class All(unittest.TestCase):
         self.assertEqual(response.data, b"See: %s\n" % (dst.encode('utf-8')))
 
     def test_caa_index(self):
-        response = self.server.get('/')
+        response = self.server.get('/', base_url='http://coverartarchive.org')
 
         self.assertEqual(response.status, '200 OK')
         self.assertEqual(response.mimetype, 'text/html')
