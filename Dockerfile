@@ -43,4 +43,6 @@ RUN chmod 755 /etc/service/redirect/run
 # Configuration
 COPY ./docker/prod/consul-template-redirect.conf /etc/
 
+RUN rm -r /etc/service/consul-template
+
 EXPOSE 8080

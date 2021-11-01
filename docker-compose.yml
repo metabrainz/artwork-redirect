@@ -1,0 +1,18 @@
+version: "3.3"
+
+services:
+
+  caa:
+    build: .
+    expose:
+      - "8080"
+    restart: unless-stopped
+    environment:
+      - VIRTUAL_HOST=coverartarchive.org
+      - LETSENCRYPT_HOST=coverartarchive.org
+      - LETSENCRYPT_EMAIL=support@metabrainz.org
+
+networks:
+  default:
+    name: musicbrainz-docker_default
+    external: true

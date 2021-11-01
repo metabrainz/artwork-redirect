@@ -3,6 +3,5 @@
 .cache
 .coverage
 /data
-config.ini
 dist
 node_modules
