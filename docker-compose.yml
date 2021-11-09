@@ -1,6 +1,52 @@
-version: "3.3"
+version: "3.9"
+
+volumes:
+  conf:
+  html:
+  dhparam:
+  acme:
+  cache:
 
 services:
+
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - cache:/cache
+      - conf:/etc/nginx/conf.d
+      - /etc/ssl/le-certs:/etc/nginx/certs:ro
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./nginx/vhost.d:/etc/nginx/vhost.d
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/redirect.json:/etc/nginx/html/redirect.json
+      - ./nginx/redirect.jpg:/etc/nginx/html/redirect.jpg
+    labels:
+      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
+
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: nginx-proxy-acme
+    restart: unless-stopped
+    depends_on:
+      - nginx-proxy
+    volumes:
+      - acme:/etc/acme.sh
+      - cache:/cache
+      - conf:/etc/nginx/conf.d
+      - /etc/ssl/le-certs:/etc/nginx/certs:rw
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./nginx/vhost.d:/etc/nginx/vhost.d
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+    environment:
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+      - DEFAULT_EMAIL=rob@metabrainz.org
 
   caa:
     build: .
