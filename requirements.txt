@@ -1,7 +1,7 @@
 coverage==7.3.2
 pytest==7.4.2
 pytest-cov==4.1.0
-psycopg2==2.8.6
+psycopg2==2.9.9
 raven==6.10.0
 requests==2.25.0
 sqlalchemy==1.4.49
