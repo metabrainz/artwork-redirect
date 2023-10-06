@@ -5,7 +5,7 @@ SET search_path=cover_art_archive,musicbrainz;
 INSERT INTO musicbrainz.artist (id, gid, name, sort_name)
     VALUES (1, '75b8a771-52a3-49a0-b2b6-993ed1250dfa', 'J Alvarez', 'J Alvarez');
 
-INSERT INTO musicbrainz.artist_credit (id, name, artist_count) VALUES (1, 'J Alvarez', 1);
+INSERT INTO musicbrainz.artist_credit (id, gid, name, artist_count) VALUES (1, '0b58a811-e62c-4d06-be71-3418516c668d', 'J Alvarez', 1);
 INSERT INTO musicbrainz.artist_credit_name (artist_credit, artist, name, position, join_phrase)
     VALUES (1, 1, 'J Alvarez', 0, '');
 
