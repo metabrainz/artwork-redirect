@@ -34,7 +34,7 @@ server container is recreated. To do that you can simply stop the server
 
 ### Option 2: Manual
 
-artwork-redirect works with *Python 3.8+*, so make sure that you have it
+artwork-redirect works with *Python 3.11+*, so make sure that you have it
 installed. Create a
 [virtual environment](https://packaging.python.org/tutorials/installing-packages/#creating-virtual-environments)
 if necessary.
