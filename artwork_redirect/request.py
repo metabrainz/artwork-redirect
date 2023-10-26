@@ -28,6 +28,7 @@ from werkzeug.wrappers import Response
 from werkzeug.wsgi import pop_path_info
 from artwork_redirect.utils import statuscode
 from artwork_redirect.loggers import get_sentry
+from sqlalchemy import text
 from wsgiref.util import shift_path_info
 
 
@@ -92,15 +93,15 @@ class ArtworkRedirect(object):
         entity = entity.replace("-", "_")
         mbid = mbid.lower()
 
-        query = """
-            SELECT %(entity)s.gid
-              FROM musicbrainz.%(entity)s
-              JOIN musicbrainz.%(entity)s_gid_redirect
-                ON %(entity)s_gid_redirect.new_id = %(entity)s.id
-             WHERE %(entity)s_gid_redirect.gid = %(mbid)s
-        """ % ({"entity": entity, "mbid": "%(mbid)s"})
+        query = text(f"""
+            SELECT {entity}.gid
+              FROM musicbrainz.{entity}
+              JOIN musicbrainz.{entity}_gid_redirect
+                ON {entity}_gid_redirect.new_id = {entity}.id
+             WHERE {entity}_gid_redirect.gid = :mbid
+        """).bindparams(mbid=mbid)
 
-        resultproxy = self.conn.execute(query, {"mbid": mbid})
+        resultproxy = self.conn.execute(query)
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
@@ -113,14 +114,14 @@ class ArtworkRedirect(object):
         cover art entries, if not respond with a 404 to the request.
         """
 
-        query = """
+        query = text("""
             SELECT release.gid
               FROM musicbrainz.release
               JOIN cover_art_archive.cover_art ON release = release.id
-             WHERE release.gid = %(mbid)s;
-        """
+             WHERE release.gid = :mbid
+        """).bindparams(mbid=mbid)
 
-        resultproxy = self.conn.execute(query, {"mbid": mbid})
+        resultproxy = self.conn.execute(query)
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
@@ -133,14 +134,14 @@ class ArtworkRedirect(object):
         artwork entries. If not, respond with a 404 to the request.
         """
 
-        query = """
+        query = text("""
             SELECT event.gid
               FROM musicbrainz.event
               JOIN event_art_archive.event_art ON event = event.id
-             WHERE event.gid = %(mbid)s;
-        """
+             WHERE event.gid = :mbid
+        """).bindparams(mbid=mbid)
 
-        resultproxy = self.conn.execute(query, {"mbid": mbid})
+        resultproxy = self.conn.execute(query)
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
@@ -156,7 +157,7 @@ class ArtworkRedirect(object):
         NotFound exception.
         """
 
-        query = """
+        query = text("""
         SELECT DISTINCT ON (release.release_group)
           release.gid AS mbid
         FROM cover_art_archive.index_listing
@@ -173,14 +174,14 @@ class ArtworkRedirect(object):
         ) release_event ON (release_event.release = release.id)
         FULL OUTER JOIN cover_art_archive.release_group_cover_art
         ON release_group_cover_art.release = musicbrainz.release.id
-        WHERE release_group.gid = %(mbid)s
+        WHERE release_group.gid = :mbid
         AND is_front = true
         ORDER BY release.release_group, release_group_cover_art.release,
           release_event.date_year, release_event.date_month,
           release_event.date_day
-        """
+        """).bindparams(mbid=mbid)
 
-        resultproxy = self.conn.execute(query, {"mbid": mbid})
+        resultproxy = self.conn.execute(query)
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
@@ -199,19 +200,19 @@ class ArtworkRedirect(object):
             raise NotFound("No %s cover image found for release with identifier %s" % (
                 type.lower(), mbid))
 
-        query = """
+        query = text("""
             SELECT index_listing.id, image_type.suffix
               FROM cover_art_archive.index_listing
               JOIN musicbrainz.release
                 ON cover_art_archive.index_listing.release = musicbrainz.release.id
               JOIN cover_art_archive.image_type
                 ON cover_art_archive.index_listing.mime_type = cover_art_archive.image_type.mime_type
-             WHERE musicbrainz.release.gid = %(mbid)s
+             WHERE musicbrainz.release.gid = :mbid
                AND """ + type_filter + """
           ORDER BY ordering ASC LIMIT 1;
-        """
+        """).bindparams(mbid=mbid)
 
-        resultproxy = self.conn.execute(query, {"mbid": mbid})
+        resultproxy = self.conn.execute(query)
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
@@ -229,19 +230,19 @@ class ArtworkRedirect(object):
             raise NotFound("No %s image found for event with identifier %s" % (
                 type.lower(), mbid))
 
-        query = """
+        query = text("""
             SELECT index_listing.id, image_type.suffix
               FROM event_art_archive.index_listing
               JOIN musicbrainz.event
                 ON event_art_archive.index_listing.event = musicbrainz.event.id
               JOIN cover_art_archive.image_type
                 ON event_art_archive.index_listing.mime_type = cover_art_archive.image_type.mime_type
-             WHERE musicbrainz.event.gid = %(mbid)s
+             WHERE musicbrainz.event.gid = :mbid
                AND """ + type_filter + """
           ORDER BY ordering ASC LIMIT 1;
-        """
+        """).bindparams(mbid=mbid)
 
-        resultproxy = self.conn.execute(query, {"mbid": mbid})
+        resultproxy = self.conn.execute(query)
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
@@ -253,18 +254,6 @@ class ArtworkRedirect(object):
     def resolve_release_image_id(self, mbid, filename, thumbnail):
         """Get a cover image by image id."""
 
-        query = """
-            SELECT cover_art.id, suffix
-              FROM cover_art_archive.cover_art
-              JOIN musicbrainz.release
-                ON release = release.id
-              JOIN cover_art_archive.image_type
-                ON cover_art.mime_type = image_type.mime_type
-             WHERE release.gid = %(mbid)s
-               AND cover_art.id = %(image_id)s
-          ORDER BY ordering ASC LIMIT 1;
-        """
-
         possible_id = re.sub("[^0-9].*", "", filename)
 
         try:
@@ -272,8 +261,19 @@ class ArtworkRedirect(object):
         except ValueError:
             raise BadRequest("%s does not not contain a valid cover image id" % (filename))
 
-        resultproxy = self.conn.execute(
-            query, {"mbid": mbid, "image_id": image_id})
+        query = text("""
+            SELECT cover_art.id, suffix
+              FROM cover_art_archive.cover_art
+              JOIN musicbrainz.release
+                ON release = release.id
+              JOIN cover_art_archive.image_type
+                ON cover_art.mime_type = image_type.mime_type
+             WHERE release.gid = :mbid
+               AND cover_art.id = :image_id
+          ORDER BY ordering ASC LIMIT 1;
+        """).bindparams(mbid=mbid, image_id=image_id)
+
+        resultproxy = self.conn.execute(query)
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:
@@ -284,18 +284,6 @@ class ArtworkRedirect(object):
     def resolve_event_image_id(self, mbid, filename, thumbnail):
         """Get an event image by image id."""
 
-        query = """
-            SELECT event_art.id, suffix
-              FROM event_art_archive.event_art
-              JOIN musicbrainz.event
-                ON event = event.id
-              JOIN cover_art_archive.image_type
-                ON event_art.mime_type = image_type.mime_type
-             WHERE event.gid = %(mbid)s
-               AND event_art.id = %(image_id)s
-          ORDER BY ordering ASC LIMIT 1;
-        """
-
         possible_id = re.sub("[^0-9].*", "", filename)
 
         try:
@@ -303,8 +291,19 @@ class ArtworkRedirect(object):
         except ValueError:
             raise BadRequest("%s does not not contain a valid event image id" % (filename))
 
-        resultproxy = self.conn.execute(
-            query, {"mbid": mbid, "image_id": image_id})
+        query = text("""
+            SELECT event_art.id, suffix
+              FROM event_art_archive.event_art
+              JOIN musicbrainz.event
+                ON event = event.id
+              JOIN cover_art_archive.image_type
+                ON event_art.mime_type = image_type.mime_type
+             WHERE event.gid = :mbid
+               AND event_art.id = :image_id
+          ORDER BY ordering ASC LIMIT 1;
+        """).bindparams(mbid=mbid, image_id=image_id)
+
+        resultproxy = self.conn.execute(query)
         row = resultproxy.fetchone()
         resultproxy.close()
         if row:

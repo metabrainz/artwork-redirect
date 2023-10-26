@@ -34,6 +34,7 @@ import unittest
 from contextlib import closing
 from artwork_redirect_server import load_config
 from artwork_redirect.server import Server
+from sqlalchemy import text
 from werkzeug.wrappers import Response
 from werkzeug.test import Client, EnvironBuilder
 
@@ -47,7 +48,7 @@ class All(unittest.TestCase):
         sqlfile = os.path.join(_root, "test", "add_data.sql")
         with codecs.open(sqlfile, "rb", "utf-8") as c:
             with closing(cls.app.engine.connect()) as connection:
-                connection.execute(c.read())
+                connection.execute(text(c.read()))
 
     def setUp(self):
         self.server = Client(self.app, Response)
