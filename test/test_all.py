@@ -92,6 +92,24 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '/front-1200',     expected + '_thumb1200.jpg')
         self.verifyRedirect(req + '/front-1200.jpg', expected + '_thumb1200.jpg')
 
+    def test_event_front(self):
+        response = self.server.get('/event/98f08de3-c91c-4180-a961-06c205e63669/front')
+        self.assertEqual(response.status, '404 NOT FOUND')
+        self.assertTrue(b'No front image found for' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
+
+        expected = 'http://archive.org/download/mbid-ebe6ce0f-22c0-4fe7-bfd4-7a0397c9fe94/mbid-ebe6ce0f-22c0-4fe7-bfd4-7a0397c9fe94-100000001'
+        req = '/event/ebe6ce0f-22c0-4fe7-bfd4-7a0397c9fe94'
+
+        self.verifyRedirect(req + '/front',         expected + '.jpg')
+        self.verifyRedirect(req + '/front.jpg',     expected + '.jpg')
+        self.verifyRedirect(req + '/front-250',     expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '/front-250.jpg', expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '/front-500',     expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/front-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '/front-1200',     expected + '_thumb1200.jpg')
+        self.verifyRedirect(req + '/front-1200.jpg', expected + '_thumb1200.jpg')
+
     def test_release_back(self):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/back')
         self.assertEqual(response.status, '404 NOT FOUND')
@@ -111,7 +129,6 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '/back-1200.jpg', expected + '_thumb1200.jpg')
 
     def test_release_image(self):
-
         response = self.server.get('/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg')
         self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'cover image with id 444444444 not found' in response.data)
@@ -125,9 +142,28 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '-500.jpg', expected + '_thumb500.jpg')
         self.verifyRedirect(req + '-1200.jpg', expected + '_thumb1200.jpg')
 
+    def test_event_image(self):
+        response = self.server.get('/event/ebe6ce0f-22c0-4fe7-bfd4-7a0397c9fe94/444444444.jpg')
+        self.assertEqual(response.status, '404 NOT FOUND')
+        self.assertTrue(b'event image with id 444444444 not found' in response.data)
+        self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
+
+        expected = 'http://archive.org/download/mbid-ebe6ce0f-22c0-4fe7-bfd4-7a0397c9fe94/mbid-ebe6ce0f-22c0-4fe7-bfd4-7a0397c9fe94-100000001'
+        req = '/event/ebe6ce0f-22c0-4fe7-bfd4-7a0397c9fe94/100000001'
+
+        self.verifyRedirect(req + '.jpg',     expected + '.jpg')
+        self.verifyRedirect(req + '-250.jpg', expected + '_thumb250.jpg')
+        self.verifyRedirect(req + '-500.jpg', expected + '_thumb500.jpg')
+        self.verifyRedirect(req + '-1200.jpg', expected + '_thumb1200.jpg')
+
     def test_resolve_invalid_release_artwork_id(self):
         _id = "invalid"
         response = self.server.get("release/353710ec-1509-4df9-8ce2-9bd5011e3b80/" + _id)
+        self.assertEqual(response.status, '400 BAD REQUEST')
+
+    def test_resolve_invalid_event_artwork_id(self):
+        _id = "invalid"
+        response = self.server.get("event/ebe6ce0f-22c0-4fe7-bfd4-7a0397c9fe94/" + _id)
         self.assertEqual(response.status, '400 BAD REQUEST')
 
     def test_release_index(self):
