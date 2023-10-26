@@ -37,6 +37,12 @@ EAA_ENTITY_TYPES = ['event']
 ALL_ENTITY_TYPES = CAA_ENTITY_TYPES + EAA_ENTITY_TYPES
 
 
+def get_service_name(request):
+    match = re.match(r'^(?:beta\.)?(cover|event)artarchive.org$', request.host)
+    if match:
+        return match.group(1)
+
+
 class ArtworkRedirect(object):
     """Handles index and redirect requests."""
 
@@ -49,9 +55,10 @@ class ArtworkRedirect(object):
     def validate_entity(self, request, entity):
         supported_entities = ALL_ENTITY_TYPES
 
-        if request.host == 'coverartarchive.org':
+        service_name = get_service_name(request)
+        if service_name == 'cover':
             supported_entities = CAA_ENTITY_TYPES
-        elif request.host == 'eventartarchive.org':
+        elif service_name == 'event':
             supported_entities = EAA_ENTITY_TYPES
 
         if entity not in supported_entities:
@@ -315,9 +322,10 @@ class ArtworkRedirect(object):
         """Serve up the one static index page."""
         if index_page is None:
             index_page = "index.html"
-            if request.host == 'coverartarchive.org':
+            service_name = get_service_name(request)
+            if service_name == 'cover':
                 index_page = "coverartarchive.html"
-            elif request.host == "eventartarchive.org":
+            elif service_name == "event":
                 index_page = "eventartarchive.html"
         try:
             f = open(os.path.join(self.config.static_path, index_page))
