@@ -66,6 +66,14 @@ class All(unittest.TestCase):
         self.assertTrue(b'<title>Cover Art Archive</title>' in response.data)
         self.assertTrue(b'Images in the archive are curated' in response.data)
 
+    def test_eaa_index(self):
+        response = self.server.get('/', base_url='http://eventartarchive.org')
+
+        self.assertEqual(response.status, '200 OK')
+        self.assertEqual(response.mimetype, 'text/html')
+        self.assertTrue(b'<title>Event Art Archive</title>' in response.data)
+        self.assertTrue(b'Images in the archive are curated' in response.data)
+
     def test_front(self):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/front')
         self.assertEqual(response.status, '404 NOT FOUND')
