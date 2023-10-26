@@ -74,7 +74,7 @@ class All(unittest.TestCase):
         self.assertTrue(b'<title>Event Art Archive</title>' in response.data)
         self.assertTrue(b'Images in the archive are curated' in response.data)
 
-    def test_front(self):
+    def test_release_front(self):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/front')
         self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No front cover image found for' in response.data)
@@ -92,7 +92,7 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '/front-1200',     expected + '_thumb1200.jpg')
         self.verifyRedirect(req + '/front-1200.jpg', expected + '_thumb1200.jpg')
 
-    def test_back(self):
+    def test_release_back(self):
         response = self.server.get('/release/98f08de3-c91c-4180-a961-06c205e63669/back')
         self.assertEqual(response.status, '404 NOT FOUND')
         self.assertTrue(b'No back cover image found for' in response.data)
@@ -110,7 +110,7 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '/back-1200',     expected + '_thumb1200.jpg')
         self.verifyRedirect(req + '/back-1200.jpg', expected + '_thumb1200.jpg')
 
-    def test_image(self):
+    def test_release_image(self):
 
         response = self.server.get('/release/353710ec-1509-4df9-8ce2-9bd5011e3b80/444444444.jpg')
         self.assertEqual(response.status, '404 NOT FOUND')
@@ -125,7 +125,7 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + '-500.jpg', expected + '_thumb500.jpg')
         self.verifyRedirect(req + '-1200.jpg', expected + '_thumb1200.jpg')
 
-    def test_resolve_image_id_with_invalid_cover_image_id(self):
+    def test_resolve_invalid_release_artwork_id(self):
         _id = "invalid"
         response = self.server.get("release/353710ec-1509-4df9-8ce2-9bd5011e3b80/" + _id)
         self.assertEqual(response.status, '400 BAD REQUEST')
