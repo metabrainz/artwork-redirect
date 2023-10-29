@@ -1,8 +1,8 @@
 Artwork URL redirect service
 ============================
 
-This service will redirect from `coverartarchive.org` URLs to `archive.org`
-URLs, taking into account MBID redirects caused by release merges.
+This service will redirect from `coverartarchive.org` and `eventartarchive.org` URLs
+to `archive.org` URLs, taking into account MBID redirects caused by release and event merges.
 
 For example, this URL:
 
