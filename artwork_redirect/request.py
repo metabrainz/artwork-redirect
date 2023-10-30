@@ -1,3 +1,4 @@
+# Copyright (C) 2007 Pallets
 # Copyright (C) 2011 Lukas Lalinsky
 # Copyright (C) 2011 Robert Kaye
 # Copyright (C) 2012, 2015 MetaBrainz Foundation Inc.
@@ -25,7 +26,6 @@ import os
 from os.path import splitext
 from werkzeug.exceptions import BadRequest, NotImplemented, NotFound
 from werkzeug.wrappers import Response
-from werkzeug.wsgi import pop_path_info
 from artwork_redirect.utils import statuscode
 from artwork_redirect.loggers import get_sentry
 from sqlalchemy import text
@@ -35,6 +35,29 @@ from wsgiref.util import shift_path_info
 CAA_ENTITY_TYPES = ['release', 'release-group']
 EAA_ENTITY_TYPES = ['event']
 ALL_ENTITY_TYPES = CAA_ENTITY_TYPES + EAA_ENTITY_TYPES
+
+
+# Copied from https://github.com/pgjones/werkzeug/blob/a34d1f7/src/werkzeug/wsgi.py#L240
+def pop_path_info(environ):
+    path = environ.get("PATH_INFO")
+    if not path:
+        return None
+    script_name = environ.get("SCRIPT_NAME", "")
+    # shift multiple leading slashes over
+    old_path = path
+    path = path.lstrip("/")
+    if path != old_path:
+        script_name += "/" * (len(old_path) - len(path))
+    if "/" not in path:
+        environ["PATH_INFO"] = ""
+        environ["SCRIPT_NAME"] = script_name + path
+        rv = path.encode("latin1")
+    else:
+        segment, path = path.split("/", 1)
+        environ["PATH_INFO"] = f"/{path}"
+        environ["SCRIPT_NAME"] = script_name + segment
+        rv = segment.encode("latin1")
+    return rv.decode('utf-8', 'replace')
 
 
 def get_service_name(request):

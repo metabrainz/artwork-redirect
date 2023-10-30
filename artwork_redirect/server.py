@@ -44,7 +44,7 @@ class Request(werkzeug.wrappers.Request):
         elif location.startswith("/"):
             location = self.host_url + location[1:]
 
-        response = werkzeug.wrappers.BaseResponse(
+        response = werkzeug.wrappers.Response(
             "See: %s\n" % location, code,
             mimetype='text/plain',
         )
