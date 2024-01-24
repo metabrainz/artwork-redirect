@@ -385,7 +385,7 @@ class ArtworkRedirect(object):
         to give the user an index of what is in the bucket.
         """
 
-        index_url = "%s/mbid-%s/index.json" % (self.config.s3.prefix, mbid)
+        index_url = "%s/mbid-%s/index.json" % (self.config.ia.download_prefix, mbid)
         return request.redirect(code=307, location=index_url)
 
     def handle_options(self, request, entity):
@@ -483,7 +483,7 @@ class ArtworkRedirect(object):
         filename = re.sub("-500.(jpg|gif|png|pdf)", "_thumb500.jpg", filename)
         filename = re.sub("-1200.(jpg|gif|png|pdf)", "_thumb1200.jpg", filename)
 
-        url = "%s/mbid-%s/mbid-%s-%s" % (self.config.s3.prefix, mbid, mbid, filename)
+        url = "%s/mbid-%s/mbid-%s-%s" % (self.config.ia.download_prefix, mbid, mbid, filename)
         return request.redirect(code=307, location=url)
 
     def handle(self, request):

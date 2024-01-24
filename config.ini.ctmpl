@@ -1,29 +1,29 @@
-{{- define "KEY" -}}
-    {{ key (printf "docker-server-configs/CAA-Redirect/config.%s.json/%s" (env "DEPLOY_ENV") .) }}
-{{- end -}}
+{{- $key_prefix := printf "docker-server-configs/services/artwork-redirect.%s.json/" (env "DEPLOY_ENV") }}
 
 [database]
-name={{template "KEY" "musicbrainz_db/name"}}
-user={{template "KEY" "musicbrainz_db/user"}}
-password={{template "KEY" "musicbrainz_db/password"}}
-{{- if service "pgbouncer-slave"}}
-{{- with index (service "pgbouncer-slave") 0}}
-host={{.Address}}
-port={{.Port}}
-{{- end}}
-{{- else if service "pgbouncer-master"}}
-{{- with index (service "pgbouncer-master") 0}}
-host={{.Address}}
-port={{.Port}}
-{{- end}}
-{{- end}}
+{{- with service (envOrDefault "POSTGRES_STANDBY_SERVICE_NAME" "pgbouncer-slave") }}
+{{- with index . 0 }}
+host={{ .Address }}
+port={{ .Port }}
+{{- end }}
+{{- else }}
+{{- with service (envOrDefault "POSTGRES_PRIMARY_SERVICE_NAME" "pgbouncer-master") }}
+{{- with index . 0 }}
+host={{ .Address }}
+port={{ .Port }}
+{{- end }}
+{{- end }}
+{{- end }}
+user={{ keyOrDefault (print $key_prefix "postgres_user") "musicbrainz" }}
+password={{ keyOrDefault (print $key_prefix "postgres_password") "" }}
+database={{ keyOrDefault (print $key_prefix "postgres_database") "musicbrainz_db" }}
 
 [sentry]
-dsn={{template "KEY" "sentry_dsn"}}
+dsn={{ keyOrDefault (print $key_prefix "sentry_dsn") "" }}
 
 [listen]
 address=0.0.0.0
 port=8080
 
-[s3]
-prefix={{template "KEY" "s3_prefix"}}
+[ia]
+download_prefix={{ keyOrDefault (print $key_prefix "ia_download_prefix") "//archive.org/download" }}

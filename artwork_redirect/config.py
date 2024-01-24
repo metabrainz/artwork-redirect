@@ -6,12 +6,12 @@ from os import path
 from sqlalchemy.engine.url import URL
 
 
-class S3Config(object):
+class IAConfig(object):
     def __init__(self):
-        self.prefix = None
+        self.download_prefix = None
 
     def read(self, parser, section):
-        self.prefix = parser.get(section, 'prefix')
+        self.download_prefix = parser.get(section, 'download_prefix')
 
 
 class SentryConfig(object):
@@ -60,7 +60,7 @@ class DatabaseConfig(object):
 
     def read(self, parser, section):
         self.user = parser.get(section, 'user')
-        self.name = parser.get(section, 'name')
+        self.name = parser.get(section, 'database')
         if parser.has_option(section, 'host'):
             self.host = parser.get(section, 'host')
         if parser.has_option(section, 'port'):
@@ -82,8 +82,8 @@ class Config(object):
             self.database.read(parser, 'database')
         self.listen = ListenConfig()
         self.listen.read(parser, 'listen')
-        self.s3 = S3Config()
-        self.s3.read(parser, 's3')
+        self.ia = IAConfig()
+        self.ia.read(parser, 'ia')
         self.sentry = SentryConfig()
         self.sentry.read(parser, 'sentry')
 
