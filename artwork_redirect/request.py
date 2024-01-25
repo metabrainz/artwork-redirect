@@ -61,9 +61,10 @@ def pop_path_info(environ):
 
 
 def get_service_name(request):
-    match = re.match(r'^(?:beta\.)?(cover|event)artarchive.org$', request.host)
+    match = re.match(r'^(?:(beta)\.)?(cover|event)artarchive.org$', request.host)
     if match:
-        return match.group(1)
+        return match.groups()
+    return ('', '')
 
 
 class ArtworkRedirect(object):
@@ -78,11 +79,16 @@ class ArtworkRedirect(object):
     def validate_entity(self, request, entity):
         supported_entities = ALL_ENTITY_TYPES
 
-        service_name = get_service_name(request)
-        if service_name == 'cover':
-            supported_entities = CAA_ENTITY_TYPES
-        elif service_name == 'event':
-            supported_entities = EAA_ENTITY_TYPES
+        is_beta, service_name = get_service_name(request)
+        # Support requesting any entity type from a beta service.
+        # This allows us to support fetching event artwork on the
+        # test server (as there is currently only a beta CAA
+        # subdomain, not a beta EAA one).
+        if not is_beta:
+            if service_name == 'cover':
+                supported_entities = CAA_ENTITY_TYPES
+            elif service_name == 'event':
+                supported_entities = EAA_ENTITY_TYPES
 
         if entity not in supported_entities:
             raise BadRequest(
@@ -345,7 +351,7 @@ class ArtworkRedirect(object):
         """Serve up the one static index page."""
         if index_page is None:
             index_page = "index.html"
-            service_name = get_service_name(request)
+            _, service_name = get_service_name(request)
             if service_name == 'cover':
                 index_page = "coverartarchive.html"
             elif service_name == "event":
