@@ -1,4 +1,3 @@
-BEGIN;
 SET client_min_messages TO 'WARNING';
 SET search_path=cover_art_archive,musicbrainz;
 
@@ -42,5 +41,3 @@ INSERT INTO event_art_archive.event_art (id, event, edit, ordering, mime_type)
 
 INSERT INTO event_art_archive.event_art_type (id, type_id)
     VALUES (100000001, 1);
-
-COMMIT;
