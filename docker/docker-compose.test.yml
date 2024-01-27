@@ -13,4 +13,4 @@ services:
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_PASSWORD: art
-    image: metabrainz/musicbrainz-test-database:production
+    image: metabrainz/musicbrainz-test-database:v-2024-01-27

@@ -31,7 +31,6 @@ sys.path.append(_root)
 
 import codecs
 import unittest
-from contextlib import closing
 from artwork_redirect_server import load_config
 from artwork_redirect.server import Server
 from sqlalchemy import text
@@ -44,14 +43,18 @@ class All(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = Server(load_config(test=True))
+        cls.server = Client(cls.app, Response)
 
-        sqlfile = os.path.join(_root, "test", "add_data.sql")
-        with codecs.open(sqlfile, "rb", "utf-8") as c:
-            with closing(cls.app.engine.connect()) as connection:
-                connection.execute(text(c.read()))
-
-    def setUp(self):
-        self.server = Client(self.app, Response)
+    def run(self, result=None):
+        with self.app.engine.connect() as conn:
+            self.app.conn = conn
+            conn.begin()
+            sqlfile = os.path.join(_root, "test", "add_data.sql")
+            with codecs.open(sqlfile, "rb", "utf-8") as c:
+                conn.execute(text(c.read()))
+            super(All, self).run(result)
+            conn.rollback()
+            self.app.conn = None
 
     def verifyRedirect(self, src, dst, **kwargs):
         response = self.server.get(src, **kwargs)
@@ -228,6 +231,20 @@ class All(unittest.TestCase):
 
         self.verifyRedirect(req,       expected + '/index.json')
         self.verifyRedirect(req + '/', expected + '/index.json')
+
+        # Add "Raw/Unedited" to the current front RG cover.
+        # Expect that the first non-raw image is preferred instead.
+
+        self.app.conn.execute(text('''
+            INSERT INTO cover_art_archive.cover_art_type (id, type_id)
+                 VALUES (100000001, 14);
+        '''))
+
+        expected = 'http://archive.org/download/mbid-f0b08d73-d827-4dde-ad2b-75a63f0c38be'
+        req = '/release-group/67a63246-0de4-4cd8-8ce2-35f70a17f92b'
+
+        self.verifyRedirect(req, expected + '/index.json')
+        self.verifyRedirect(req + '/front', expected + '/mbid-f0b08d73-d827-4dde-ad2b-75a63f0c38be-900000009.jpg')
 
     def test_options_method(self):
         for path in [
