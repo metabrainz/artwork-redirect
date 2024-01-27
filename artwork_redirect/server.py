@@ -59,12 +59,19 @@ class Server(object):
         self.engine = sqlalchemy.create_engine(
             self.config.database.create_url(),
             poolclass=NullPool)
+        self.conn = None
+
+    def handle_request(self, conn, request):
+        return ArtworkRedirect(self.config, conn).handle(request)
 
     @Request.application
     def __call__(self, request):
         try:
-            with closing(self.engine.connect()) as conn:
-                response = ArtworkRedirect(self.config, conn).handle(request)
+            if self.conn:
+                response = self.handle_request(self.conn, request)
+            else:
+                with closing(self.engine.connect()) as conn:
+                    response = self.handle_request(conn, request)
         except werkzeug.exceptions.HTTPException as e:
             get_sentry().captureException()
             response = e.get_response()
