@@ -12,7 +12,7 @@ psycopg2==2.9.9
 pytest==7.4.2
 pytest-cov==4.1.0
 raven==6.10.0
-requests==2.31.0
+requests==2.32.0
 SQLAlchemy==2.0.22
 typing_extensions==4.8.0
 urllib3==1.26.18
