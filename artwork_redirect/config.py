@@ -30,6 +30,7 @@ class ListenConfig(object):
     def read(self, parser, section):
         self.addr = parser.get(section, 'address')
         self.port = parser.get(section, 'port')
+        self.processes = parser.getint(section, 'processes', fallback=1)
 
 
 class DatabaseConfig(object):

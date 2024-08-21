@@ -38,7 +38,7 @@ def development():
 
     run_simple(addr, port, application, use_reloader=True,
                extra_files=None, reloader_interval=1, threaded=False,
-               processes=1, request_handler=None)
+               processes=config.listen.processes, request_handler=None)
 
 
 def print_help():
