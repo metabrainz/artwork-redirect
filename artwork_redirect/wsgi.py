@@ -3,15 +3,20 @@
 
 # Simple WSGI module intended to be used by uWSGI.
 
+import sentry_sdk
+from werkzeug.exceptions import HTTPException
 from artwork_redirect.server import Server
 from artwork_redirect.config import load_config
-from artwork_redirect.loggers import init_raven_client
 
 
 config = load_config()
 
 sentry_dsn = config.sentry.dsn
 if sentry_dsn:
-    init_raven_client(sentry_dsn)
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        ignore_errors=[KeyboardInterrupt, HTTPException],
+    )
+
 
 application = Server(config)
