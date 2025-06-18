@@ -57,7 +57,7 @@ class DatabaseConfig(object):
             kwargs['port'] = self.port
         if self.password is not None:
             kwargs['password'] = self.password
-        return URL.create('postgresql', **kwargs)
+        return URL.create('postgresql+psycopg', **kwargs)
 
     def read(self, parser, section):
         self.user = parser.get(section, 'user')

@@ -24,10 +24,11 @@
 import re
 import os
 from os.path import splitext
+import uuid
+import sentry_sdk
 from werkzeug.exceptions import BadRequest, NotImplemented, NotFound
 from werkzeug.wrappers import Response
 from artwork_redirect.utils import statuscode
-from artwork_redirect.loggers import get_sentry
 from sqlalchemy import text
 from wsgiref.util import shift_path_info
 
@@ -127,7 +128,6 @@ class ArtworkRedirect(object):
         """
 
         entity = entity.replace("-", "_")
-        mbid = mbid.lower()
 
         query = text(f"""
             SELECT {entity}.gid
@@ -360,8 +360,8 @@ class ArtworkRedirect(object):
                 index_page = "eventartarchive.html"
         try:
             f = open(os.path.join(self.config.static_path, index_page))
-        except IOError:
-            get_sentry().captureException()
+        except IOError as e:
+            sentry_sdk.capture_exception(e)
             return Response(status=500, response="Internal Server Error")
         txt = f.read()
         f.close()
@@ -373,8 +373,8 @@ class ArtworkRedirect(object):
             raise NotFound
         try:
             f = open(os.path.join(img_dir, name))
-        except IOError:
-            get_sentry().captureException()
+        except IOError as e:
+            sentry_sdk.capture_exception(e)
             return Response(status=500, response="Internal Server Error")
         txt = f.read()
         f.close()
@@ -425,11 +425,11 @@ class ArtworkRedirect(object):
 
                 try:
                     int(id_text)
-                except ValueError:
+                except ValueError as e:
                     if id_text not in ('front', 'back'):
                         raise BadRequest()
                     else:
-                        get_sentry().captureException()
+                        sentry_sdk.capture_exception(e)
 
                 if len(_split) > 1:
                     size = _split[1]
@@ -518,6 +518,7 @@ class ArtworkRedirect(object):
 
         req_mbid = shift_path_info(request.environ)
         self.validate_mbid(req_mbid)
+        req_mbid = uuid.UUID(req_mbid)
 
         mbid = self.resolve_mbid(entity, req_mbid)
         filename = pop_path_info(request.environ)

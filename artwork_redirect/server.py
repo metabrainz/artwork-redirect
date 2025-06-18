@@ -23,13 +23,13 @@
 
 import logging
 import traceback
+import sentry_sdk
 import sqlalchemy
 import werkzeug.exceptions
 import werkzeug.urls
 import werkzeug.wrappers
 from contextlib import closing
 from artwork_redirect.request import ArtworkRedirect
-from artwork_redirect.loggers import get_sentry
 from sqlalchemy.pool import NullPool
 
 
@@ -73,10 +73,10 @@ class Server(object):
                 with closing(self.engine.connect()) as conn:
                     response = self.handle_request(conn, request)
         except werkzeug.exceptions.HTTPException as e:
-            get_sentry().captureException()
+            sentry_sdk.capture_exception(e)
             response = e.get_response()
         except:  # FIXME: Exception clause is too broad
-            get_sentry().captureException()
+            sentry_sdk.capture_exception()
             logging.error("Caught exception\n" + traceback.format_exc())
             response = werkzeug.wrappers.Response(
                 status=500,
