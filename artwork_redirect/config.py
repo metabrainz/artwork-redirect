@@ -1,9 +1,16 @@
 # Copyright (C) 2011 Lukas Lalinsky
+# Copyright (C) 2019 MetaBrainz Foundation
 # Distributed under the MIT license, see the LICENSE file for details.
 
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 from os import path
 from sqlalchemy.engine.url import URL
+
+
+class EnvironmentInterpolation(ExtendedInterpolation):
+    def before_read(self, parser, section, option, value):
+        value = super().before_read(parser, section, option, value)
+        return path.expandvars(value)
 
 
 class IAConfig(object):
@@ -74,7 +81,7 @@ class Config(object):
 
     def __init__(self, path, static_path, test=False):
         self.static_path = static_path
-        parser = configparser.RawConfigParser()
+        parser = ConfigParser(interpolation=EnvironmentInterpolation())
         parser.read(path)
         self.database = DatabaseConfig()
         if test:
