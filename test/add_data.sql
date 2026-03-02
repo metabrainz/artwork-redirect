@@ -27,8 +27,8 @@ INSERT INTO musicbrainz.editor (id, name, password, email, email_confirm_date, h
 VALUES (1, 'kuno', 'topsecret', 'kuno@kunoenterprises.ltd', now(), '');
 
 INSERT INTO musicbrainz.edit (id, editor, type, status, expire_time)
-    -- FIXME: replace 9999 with the "add event artwork" edit type ID, once that's known.
-    VALUES (1, 1, 314, 2, now()), (2, 1, 9999, 2, now());
+    -- edit type 314 = EDIT_RELEASE_ADD_COVER_ART, 158 = EDIT_EVENT_ADD_EVENT_ART
+    VALUES (1, 1, 314, 2, now()), (2, 1, 158, 2, now());
 INSERT INTO musicbrainz.edit_data (edit, data)
     VALUES (1, '{"foo":"bar"}'), (2, '{"foo":"bar"}');
 
