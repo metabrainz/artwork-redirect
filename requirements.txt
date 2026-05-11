@@ -8,6 +8,6 @@ pycparser==2.22
 sentry-sdk==2.30.0
 SQLAlchemy==2.0.41
 typing_extensions==4.14.0
-urllib3==2.6.3
+urllib3==2.7.0
 uWSGI==2.0.30
 Werkzeug==3.1.5
