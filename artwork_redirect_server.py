@@ -21,10 +21,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import os
 import sys
-from artwork_redirect.server import Server
+
 from artwork_redirect.config import load_config
+from artwork_redirect.server import Server
 
 
 def development():
@@ -36,9 +36,17 @@ def development():
     addr = config.listen.addr
     port = int(config.listen.port)
 
-    run_simple(addr, port, application, use_reloader=True,
-               extra_files=None, reloader_interval=1, threaded=False,
-               processes=config.listen.processes, request_handler=None)
+    run_simple(
+        addr,
+        port,
+        application,
+        use_reloader=True,
+        extra_files=None,
+        reloader_interval=1,
+        threaded=False,
+        processes=config.listen.processes,
+        request_handler=None,
+    )
 
 
 def print_help():
@@ -53,12 +61,12 @@ options:
     sys.exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     option = None
     if len(sys.argv) > 1:
         option = sys.argv.pop()
 
-    if option == '--help':
+    if option == "--help":
         print_help()
     else:
         development()

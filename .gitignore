@@ -2,6 +2,7 @@
 *~
 .cache
 .coverage
+.venv
 /data
 config.ini
 dist

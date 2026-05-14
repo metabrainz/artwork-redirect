@@ -5,9 +5,9 @@
 
 import sentry_sdk
 from werkzeug.exceptions import HTTPException
-from artwork_redirect.server import Server
-from artwork_redirect.config import load_config
 
+from artwork_redirect.config import load_config
+from artwork_redirect.server import Server
 
 config = load_config()
 

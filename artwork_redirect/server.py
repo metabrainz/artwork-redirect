@@ -23,42 +23,41 @@
 
 import logging
 import traceback
+from contextlib import closing
+
 import sentry_sdk
 import sqlalchemy
 import werkzeug.exceptions
 import werkzeug.urls
 import werkzeug.wrappers
-from contextlib import closing
-from artwork_redirect.request import ArtworkRedirect
 from sqlalchemy.pool import NullPool
+
+from artwork_redirect.request import ArtworkRedirect
 
 
 class Request(werkzeug.wrappers.Request):
-
     def redirect(self, location, code=302):
-        if self.headers.get('X-Forwarded-Proto') == 'https':
-            self.environ['wsgi.url_scheme'] = 'https'
+        if self.headers.get("X-Forwarded-Proto") == "https":
+            self.environ["wsgi.url_scheme"] = "https"
 
         if location.startswith("//"):
-            location = self.environ['wsgi.url_scheme'] + ':' + location
+            location = self.environ["wsgi.url_scheme"] + ":" + location
         elif location.startswith("/"):
             location = self.host_url + location[1:]
 
         response = werkzeug.wrappers.Response(
-            "See: %s\n" % location, code,
-            mimetype='text/plain',
+            "See: %s\n" % location,
+            code,
+            mimetype="text/plain",
         )
-        response.headers['Location'] = werkzeug.urls.iri_to_uri(location)
+        response.headers["Location"] = werkzeug.urls.iri_to_uri(location)
         return response
 
 
 class Server(object):
-
     def __init__(self, config):
         self.config = config
-        self.engine = sqlalchemy.create_engine(
-            self.config.database.create_url(),
-            poolclass=NullPool)
+        self.engine = sqlalchemy.create_engine(self.config.database.create_url(), poolclass=NullPool)
         self.conn = None
 
     def handle_request(self, conn, request):
@@ -75,12 +74,12 @@ class Server(object):
         except werkzeug.exceptions.HTTPException as e:
             sentry_sdk.capture_exception(e)
             response = e.get_response()
-        except:  # FIXME: Exception clause is too broad
+        except Exception:
             sentry_sdk.capture_exception()
             logging.error("Caught exception\n" + traceback.format_exc())
             response = werkzeug.wrappers.Response(
                 status=500,
                 response=["Whoops. Our bad.\n"],
             )
-        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add("Access-Control-Allow-Origin", "*")
         return response

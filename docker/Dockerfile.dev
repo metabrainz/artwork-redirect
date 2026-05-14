@@ -9,15 +9,13 @@ RUN apt-get update \
                        libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 RUN mkdir /code
 WORKDIR /code
 
-# Python dependencies
-RUN pip install -U cffi
-COPY requirements.txt requirements.dev.txt /code/
-RUN pip install -r requirements.dev.txt
-
 COPY . /code/
+RUN uv sync --frozen --group dev
 RUN cp config.default.ini config.ini
 
-CMD ["python", "artwork_redirect_server.py"]
+CMD ["uv", "run", "python", "artwork_redirect_server.py"]

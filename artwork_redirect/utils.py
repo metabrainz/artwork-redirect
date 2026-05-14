@@ -2,33 +2,34 @@
 # Distributed under the MIT license, see the LICENSE file for details.
 
 import syslog
+from logging import Handler
+
 import werkzeug
 import werkzeug.http
-from logging import Handler
 
 
 class LocalSysLogHandler(Handler):
     """Logging handler that logs to the local syslog using the syslog module."""
 
     facility_names = {
-        "auth":     syslog.LOG_AUTH,
-        "cron":     syslog.LOG_CRON,
-        "daemon":   syslog.LOG_DAEMON,
-        "kern":     syslog.LOG_KERN,
-        "lpr":      syslog.LOG_LPR,
-        "mail":     syslog.LOG_MAIL,
-        "news":     syslog.LOG_NEWS,
-        "syslog":   syslog.LOG_SYSLOG,
-        "user":     syslog.LOG_USER,
-        "uucp":     syslog.LOG_UUCP,
-        "local0":   syslog.LOG_LOCAL0,
-        "local1":   syslog.LOG_LOCAL1,
-        "local2":   syslog.LOG_LOCAL2,
-        "local3":   syslog.LOG_LOCAL3,
-        "local4":   syslog.LOG_LOCAL4,
-        "local5":   syslog.LOG_LOCAL5,
-        "local6":   syslog.LOG_LOCAL6,
-        "local7":   syslog.LOG_LOCAL7,
+        "auth": syslog.LOG_AUTH,
+        "cron": syslog.LOG_CRON,
+        "daemon": syslog.LOG_DAEMON,
+        "kern": syslog.LOG_KERN,
+        "lpr": syslog.LOG_LPR,
+        "mail": syslog.LOG_MAIL,
+        "news": syslog.LOG_NEWS,
+        "syslog": syslog.LOG_SYSLOG,
+        "user": syslog.LOG_USER,
+        "uucp": syslog.LOG_UUCP,
+        "local0": syslog.LOG_LOCAL0,
+        "local1": syslog.LOG_LOCAL1,
+        "local2": syslog.LOG_LOCAL2,
+        "local3": syslog.LOG_LOCAL3,
+        "local4": syslog.LOG_LOCAL4,
+        "local5": syslog.LOG_LOCAL5,
+        "local6": syslog.LOG_LOCAL6,
+        "local7": syslog.LOG_LOCAL7,
     }
 
     priority_map = {
@@ -36,7 +37,7 @@ class LocalSysLogHandler(Handler):
         "INFO": syslog.LOG_INFO,
         "WARNING": syslog.LOG_WARNING,
         "ERROR": syslog.LOG_ERR,
-        "CRITICAL": syslog.LOG_CRIT
+        "CRITICAL": syslog.LOG_CRIT,
     }
 
     def __init__(self, ident=None, facility=syslog.LOG_USER, log_pid=False):
@@ -58,7 +59,7 @@ class LocalSysLogHandler(Handler):
         try:
             msg = self.format(record)
             if isinstance(msg, str):
-                msg = msg.encode('utf-8')
+                msg = msg.encode("utf-8")
             priority = self.priority_map[record.levelname]
             for m in msg.splitlines():
                 syslog.syslog(self.facility | priority, m)
@@ -67,4 +68,4 @@ class LocalSysLogHandler(Handler):
 
 
 def statuscode(code):
-    return '%d %s' % (code, werkzeug.http.HTTP_STATUS_CODES[code])
+    return "%d %s" % (code, werkzeug.http.HTTP_STATUS_CODES[code])

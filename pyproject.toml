@@ -1,0 +1,43 @@
+[project]
+name = "artwork-redirect"
+version = "0.1.0"
+description = "Cover Art Archive / Event Art Archive redirect service"
+authors = [{name = "MetaBrainz Foundation"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "psycopg[binary]>=3.2",
+    "sentry-sdk>=2.0",
+    "sqlalchemy>=2.0",
+    "uwsgi>=2.0",
+    "werkzeug>=3.0",
+]
+
+[project.urls]
+Repository = "https://github.com/metabrainz/artwork-redirect"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.0",
+    "pytest>=8.0",
+    "pytest-cov>=6.0",
+    "ruff>=0.15.0",
+    "ty>=0.0.1a1",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = "-m 'not integration'"
+pythonpath = ["."]
+markers = ["integration: tests requiring a PostgreSQL database (run via docker-compose)"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
