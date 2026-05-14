@@ -10,15 +10,16 @@ RUN apt-get update \
                        sudo \
     && rm -rf /var/lib/apt/lists/*
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 RUN useradd --create-home --shell /bin/bash art
 
 WORKDIR /home/art/artwork-redirect
 RUN chown art:art /home/art/artwork-redirect
 
-# Python dependencies
-RUN sudo -E -H -u art pip install --user -U cffi
-COPY requirements.txt ./
-RUN sudo -E -H -u art pip install --user -r requirements.txt
+# Install dependencies
+COPY pyproject.toml uv.lock ./
+RUN sudo -E -H -u art uv sync --frozen --no-dev --no-editable
 
 COPY . ./
 RUN chown -R art:art ./
