@@ -24,7 +24,7 @@ Make sure you have [Docker](https://www.docker.com/) and
 [Docker Compose](https://github.com/docker/compose) installed.
 To start the development server and its dependencies, run:
 
-    $ docker-compose -f docker/docker-compose.dev.yml up --build
+    $ docker compose -f docker/docker-compose.dev.yml up --build
 
 After all Docker images start you should be able to access the web server at `localhost:8080`.
 
@@ -34,38 +34,41 @@ server container is recreated. To do that you can simply stop the server
 
 ### Option 2: Manual
 
-artwork-redirect works with *Python 3.13+*, so make sure that you have it
-installed. Create a
-[virtual environment](https://packaging.python.org/tutorials/installing-packages/#creating-virtual-environments)
-if necessary.
+artwork-redirect works with *Python 3.10+*. Install
+[uv](https://docs.astral.sh/uv/getting-started/installation/), then:
 
-Install all required packages using [pip](https://pip.pypa.io):
-
-    $ pip install -r requirements.txt
+    $ uv sync
 
 Copy *config.default.ini* to *config.ini* and adjust configuration values.
 You'd want to set up a connection to the instance of PostgreSQL with a
 MusicBrainz database that you should already have running.
 
-Finally, run the *artwork_redirect_server.py* script to start the server.
+Run the server:
+
+    $ uv run python artwork_redirect_server.py
 
 All logging goes to stdout, including stacktraces, so it's suitable for
 running inside of daemontools.
 
 ## Testing
 
-*Currently some tests depend on an actual MusicBrainz database running in the background, so make sure to follow the setup process first.* We use
-[Pytest](https://pytest.org) as a test runner. All tests can be run with the
-following command:
+*Currently some tests depend on an actual MusicBrainz database running in the background, so make sure to follow the setup process first.*
 
-    $ pytest
+Run tests:
 
-There are more ways to use Pytest (for example, to run only tests for a
-specific module). Check their documentation to see what kinds of additional
-options you have.
+    $ uv run pytest
 
 With **Docker** you can run all the tests like this:
 
-    $ docker-compose -f docker/docker-compose.test.yml up --build
+    $ docker compose -f docker/docker-compose.test.yml up --build
 
 You should see test results in the output.
+
+## Development
+
+    $ uv sync --group dev
+    $ pre-commit install
+
+    $ uv run ruff check .
+    $ uv run ruff format .
+    $ uv run pytest
