@@ -30,6 +30,7 @@ from wsgiref.util import shift_path_info
 import sentry_sdk
 from sqlalchemy import text
 from werkzeug.exceptions import BadRequest, NotFound
+from werkzeug.exceptions import NotImplemented as HTTPNotImplemented
 from werkzeug.wrappers import Response
 
 from artwork_redirect.utils import statuscode
@@ -404,7 +405,7 @@ class ArtworkRedirect(object):
         """
         if request.environ["SERVER_PROTOCOL"] != "HTTP/1.1":
             # OPTIONS does not exist in HTTP/1.0
-            raise NotImplementedError()
+            raise HTTPNotImplemented()
         if entity:
             if not entity == "*":
                 self.validate_entity(request, entity)
