@@ -52,17 +52,15 @@ running inside of daemontools.
 
 ## Testing
 
-*Currently some tests depend on an actual MusicBrainz database running in the background, so make sure to follow the setup process first.*
-
-Run tests:
-
-    $ uv run pytest
-
-With **Docker** you can run all the tests like this:
+Run the full test suite (requires Docker):
 
     $ docker compose -f docker/docker-compose.test.yml up --build
 
-You should see test results in the output.
+This starts a PostgreSQL container with MusicBrainz test data and runs
+all tests against it.
+
+**Note:** Tests cannot run without the database — `uv run pytest` alone
+will fail with configuration errors.
 
 ## Development
 
