@@ -14,10 +14,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 RUN mkdir /code
 WORKDIR /code
 
-COPY pyproject.toml uv.lock /code/
-RUN uv sync --frozen --group dev
-
 COPY . /code/
+RUN uv sync --frozen --group dev
 RUN cp config.default.ini config.ini
 
 CMD ["uv", "run", "python", "artwork_redirect_server.py"]

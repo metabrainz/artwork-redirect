@@ -17,12 +17,9 @@ RUN useradd --create-home --shell /bin/bash art
 WORKDIR /home/art/artwork-redirect
 RUN chown art:art /home/art/artwork-redirect
 
-# Install dependencies
-COPY pyproject.toml uv.lock ./
-RUN sudo -E -H -u art uv sync --frozen --no-dev --no-editable
-
 COPY . ./
 RUN chown -R art:art ./
+RUN sudo -E -H -u art uv sync --frozen --no-dev --no-editable
 
 ############
 # Services #

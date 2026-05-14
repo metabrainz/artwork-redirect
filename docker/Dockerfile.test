@@ -18,10 +18,8 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 RUN mkdir /code
 WORKDIR /code
 
-COPY pyproject.toml uv.lock /code/
-RUN uv sync --frozen --group dev
-
 COPY . /code/
+RUN uv sync --frozen --group dev
 RUN cp config.default.ini config.ini
 
 CMD dockerize -wait tcp://mbs_db_test:5432 -timeout 200s \
