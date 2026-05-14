@@ -33,9 +33,10 @@ line-length = 120
 select = ["E", "F", "W", "I"]
 
 [tool.pytest.ini_options]
-testpaths = ["artwork_redirect", "test"]
-addopts = "--cov=artwork_redirect"
+testpaths = ["test"]
+addopts = "-m 'not integration'"
 pythonpath = ["."]
+markers = ["integration: tests requiring a PostgreSQL database (run via docker-compose)"]
 
 [build-system]
 requires = ["hatchling"]
