@@ -4,6 +4,7 @@
 
 from configparser import ConfigParser, ExtendedInterpolation
 from os import path
+
 from sqlalchemy.engine.url import URL
 
 
@@ -18,7 +19,7 @@ class IAConfig(object):
         self.download_prefix = None
 
     def read(self, parser, section):
-        self.download_prefix = parser.get(section, 'download_prefix')
+        self.download_prefix = parser.get(section, "download_prefix")
 
 
 class SentryConfig(object):
@@ -26,7 +27,7 @@ class SentryConfig(object):
         self.dsn = None
 
     def read(self, parser, section):
-        self.dsn = parser.get(section, 'dsn')
+        self.dsn = parser.get(section, "dsn")
 
 
 class ListenConfig(object):
@@ -35,16 +36,15 @@ class ListenConfig(object):
         self.port = None
 
     def read(self, parser, section):
-        self.addr = parser.get(section, 'address')
-        self.port = parser.get(section, 'port')
-        self.processes = parser.getint(section, 'processes', fallback=1)
+        self.addr = parser.get(section, "address")
+        self.port = parser.get(section, "port")
+        self.processes = parser.getint(section, "processes", fallback=1)
 
 
 class DatabaseConfig(object):
-
     def __init__(self):
         self.user = None
-        self.superuser = 'postgres'
+        self.superuser = "postgres"
         self.name = None
         self.host = None
         self.port = None
@@ -54,46 +54,45 @@ class DatabaseConfig(object):
     def create_url(self, superuser=False):
         kwargs = {}
         if superuser:
-            kwargs['username'] = self.superuser
+            kwargs["username"] = self.superuser
         else:
-            kwargs['username'] = self.user
-        kwargs['database'] = self.name
+            kwargs["username"] = self.user
+        kwargs["database"] = self.name
         if self.host is not None:
-            kwargs['host'] = self.host
+            kwargs["host"] = self.host
         if self.port is not None:
-            kwargs['port'] = self.port
+            kwargs["port"] = self.port
         if self.password is not None:
-            kwargs['password'] = self.password
-        return URL.create('postgresql+psycopg', **kwargs)
+            kwargs["password"] = self.password
+        return URL.create("postgresql+psycopg", **kwargs)
 
     def read(self, parser, section):
-        self.user = parser.get(section, 'user')
-        self.name = parser.get(section, 'database')
-        if parser.has_option(section, 'host'):
-            self.host = parser.get(section, 'host')
-        if parser.has_option(section, 'port'):
-            self.port = parser.getint(section, 'port')
-        if parser.has_option(section, 'password'):
-            self.password = parser.get(section, 'password')
+        self.user = parser.get(section, "user")
+        self.name = parser.get(section, "database")
+        if parser.has_option(section, "host"):
+            self.host = parser.get(section, "host")
+        if parser.has_option(section, "port"):
+            self.port = parser.getint(section, "port")
+        if parser.has_option(section, "password"):
+            self.password = parser.get(section, "password")
 
 
 class Config(object):
-
     def __init__(self, path, static_path, test=False):
         self.static_path = static_path
         parser = ConfigParser(interpolation=EnvironmentInterpolation())
         parser.read(path)
         self.database = DatabaseConfig()
         if test:
-            self.database.read(parser, 'testdatabase')
+            self.database.read(parser, "testdatabase")
         else:
-            self.database.read(parser, 'database')
+            self.database.read(parser, "database")
         self.listen = ListenConfig()
-        self.listen.read(parser, 'listen')
+        self.listen.read(parser, "listen")
         self.ia = IAConfig()
-        self.ia.read(parser, 'ia')
+        self.ia.read(parser, "ia")
         self.sentry = SentryConfig()
-        self.sentry.read(parser, 'sentry')
+        self.sentry.read(parser, "sentry")
 
 
 def load_config(test=False):
@@ -103,7 +102,7 @@ def load_config(test=False):
     [testdatabase] section instead of the [database] section.
     """
 
-    config_path = path.join(path.dirname(path.abspath(__file__)), '..', 'config.ini')
-    static_path = path.join(path.dirname(path.abspath(__file__)), '..', 'static')
+    config_path = path.join(path.dirname(path.abspath(__file__)), "..", "config.ini")
+    static_path = path.join(path.dirname(path.abspath(__file__)), "..", "static")
 
     return Config(config_path, static_path, test)

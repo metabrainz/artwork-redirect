@@ -35,6 +35,7 @@ select = ["E", "F", "W", "I"]
 [tool.pytest.ini_options]
 testpaths = ["artwork_redirect", "test"]
 addopts = "--cov=artwork_redirect"
+pythonpath = ["."]
 
 [build-system]
 requires = ["hatchling"]
