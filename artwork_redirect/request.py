@@ -128,11 +128,14 @@ class ArtworkRedirect(object):
         """Return a SQL subquery that resolves an MBID to an entity id,
         following GID redirects. Use as: WHERE entity.id = ({this})"""
         entity = entity.replace("-", "_")
+        quote = self.conn.dialect.identifier_preparer.quote
+        t = quote(entity)
+        t_redir = quote(f"{entity}_gid_redirect")
         return f"""SELECT COALESCE(
-            (SELECT r.id FROM musicbrainz.{entity} r
-             JOIN musicbrainz.{entity}_gid_redirect redir ON redir.new_id = r.id
+            (SELECT r.id FROM musicbrainz.{t} r
+             JOIN musicbrainz.{t_redir} redir ON redir.new_id = r.id
              WHERE redir.gid = :mbid),
-            (SELECT r.id FROM musicbrainz.{entity} r WHERE r.gid = :mbid)
+            (SELECT r.id FROM musicbrainz.{t} r WHERE r.gid = :mbid)
         )"""
 
     def resolve_release_cover_index(self, mbid):
