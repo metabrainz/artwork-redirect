@@ -123,42 +123,27 @@ class ArtworkRedirect(object):
         else:
             return ""
 
-    def resolve_mbid(self, entity, mbid):
-        """Handle the GID redirect.
-
-        Query the database to see if the given release has been merged into
-        another release. If so, return the redirected MBID, otherwise return
-        the original MBID.
-        """
-
+    def _resolve_entity_id_sql(self, entity):
+        """Return a SQL subquery that resolves an MBID to an entity id,
+        following GID redirects. Use as: WHERE entity.id = ({this})"""
         entity = entity.replace("-", "_")
-
-        query = text(f"""
-            SELECT {entity}.gid
-              FROM musicbrainz.{entity}
-              JOIN musicbrainz.{entity}_gid_redirect
-                ON {entity}_gid_redirect.new_id = {entity}.id
-             WHERE {entity}_gid_redirect.gid = :mbid
-        """).bindparams(mbid=mbid)
-
-        resultproxy = self.conn.execute(query)
-        row = resultproxy.fetchone()
-        resultproxy.close()
-        if row:
-            return row[0]
-
-        return mbid
+        return f"""SELECT COALESCE(
+            (SELECT r.id FROM musicbrainz.{entity} r
+             JOIN musicbrainz.{entity}_gid_redirect redir ON redir.new_id = r.id
+             WHERE redir.gid = :mbid),
+            (SELECT r.id FROM musicbrainz.{entity} r WHERE r.gid = :mbid)
+        )"""
 
     def resolve_release_cover_index(self, mbid):
         """Query the database to see if the given release has any
         cover art entries, if not respond with a 404 to the request.
         """
 
-        query = text("""
+        query = text(f"""
             SELECT release.gid
               FROM musicbrainz.release
               JOIN cover_art_archive.cover_art ON release = release.id
-             WHERE release.gid = :mbid
+             WHERE release.id = ({self._resolve_entity_id_sql("release")})
         """).bindparams(mbid=mbid)
 
         resultproxy = self.conn.execute(query)
@@ -174,11 +159,11 @@ class ArtworkRedirect(object):
         artwork entries. If not, respond with a 404 to the request.
         """
 
-        query = text("""
+        query = text(f"""
             SELECT event.gid
               FROM musicbrainz.event
               JOIN event_art_archive.event_art ON event = event.id
-             WHERE event.gid = :mbid
+             WHERE event.id = ({self._resolve_entity_id_sql("event")})
         """).bindparams(mbid=mbid)
 
         resultproxy = self.conn.execute(query)
@@ -197,7 +182,7 @@ class ArtworkRedirect(object):
         NotFound exception.
         """
 
-        query = text("""
+        query = text(f"""
         SELECT DISTINCT ON (release.release_group)
           release.gid AS mbid
         FROM cover_art_archive.index_listing
@@ -214,7 +199,7 @@ class ArtworkRedirect(object):
         ) release_event ON (release_event.release = release.id)
         FULL OUTER JOIN cover_art_archive.release_group_cover_art
         ON release_group_cover_art.release = musicbrainz.release.id
-        WHERE release_group.gid = :mbid
+        WHERE release_group.id = ({self._resolve_entity_id_sql("release_group")})
         AND is_front = true
         ORDER BY release.release_group, release_group_cover_art.release,
           (CASE WHEN 'Raw/Unedited' = any(cover_art_archive.index_listing.types)
@@ -242,14 +227,14 @@ class ArtworkRedirect(object):
             raise NotFound("No %s cover image found for release with identifier %s" % (type.lower(), mbid))
 
         query = text(
-            """
+            f"""
             SELECT index_listing.id, image_type.suffix
               FROM cover_art_archive.index_listing
               JOIN musicbrainz.release
                 ON cover_art_archive.index_listing.release = musicbrainz.release.id
               JOIN cover_art_archive.image_type
                 ON cover_art_archive.index_listing.mime_type = cover_art_archive.image_type.mime_type
-             WHERE musicbrainz.release.gid = :mbid
+             WHERE musicbrainz.release.id = ({self._resolve_entity_id_sql("release")})
                AND """
             + type_filter
             + """
@@ -274,14 +259,14 @@ class ArtworkRedirect(object):
             raise NotFound("No %s image found for event with identifier %s" % (type.lower(), mbid))
 
         query = text(
-            """
+            f"""
             SELECT index_listing.id, image_type.suffix
               FROM event_art_archive.index_listing
               JOIN musicbrainz.event
                 ON event_art_archive.index_listing.event = musicbrainz.event.id
               JOIN cover_art_archive.image_type
                 ON event_art_archive.index_listing.mime_type = cover_art_archive.image_type.mime_type
-             WHERE musicbrainz.event.gid = :mbid
+             WHERE musicbrainz.event.id = ({self._resolve_entity_id_sql("event")})
                AND """
             + type_filter
             + """
@@ -308,14 +293,14 @@ class ArtworkRedirect(object):
         except ValueError:
             raise BadRequest("%s does not not contain a valid cover image id" % (filename))
 
-        query = text("""
+        query = text(f"""
             SELECT cover_art.id, suffix
               FROM cover_art_archive.cover_art
               JOIN musicbrainz.release
                 ON release = release.id
               JOIN cover_art_archive.image_type
                 ON cover_art.mime_type = image_type.mime_type
-             WHERE release.gid = :mbid
+             WHERE release.id = ({self._resolve_entity_id_sql("release")})
                AND cover_art.id = :image_id
           ORDER BY ordering ASC LIMIT 1;
         """).bindparams(mbid=mbid, image_id=image_id)
@@ -339,14 +324,14 @@ class ArtworkRedirect(object):
         except ValueError:
             raise BadRequest("%s does not not contain a valid event image id" % (filename))
 
-        query = text("""
+        query = text(f"""
             SELECT event_art.id, suffix
               FROM event_art_archive.event_art
               JOIN musicbrainz.event
                 ON event = event.id
               JOIN cover_art_archive.image_type
                 ON event_art.mime_type = image_type.mime_type
-             WHERE event.gid = :mbid
+             WHERE event.id = ({self._resolve_entity_id_sql("event")})
                AND event_art.id = :image_id
           ORDER BY ordering ASC LIMIT 1;
         """).bindparams(mbid=mbid, image_id=image_id)
@@ -525,9 +510,8 @@ class ArtworkRedirect(object):
 
         req_mbid = shift_path_info(request.environ)
         self.validate_mbid(req_mbid)
-        req_mbid = uuid.UUID(req_mbid)
+        mbid = uuid.UUID(req_mbid)
 
-        mbid = self.resolve_mbid(entity, req_mbid)
         filename = pop_path_info(request.environ)
 
         if entity == "release-group":
