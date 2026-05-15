@@ -162,6 +162,83 @@ class TestHandleRedirect:
         assert self.redirect._apply_thumb_subs("100000001.jpg") == "100000001.jpg"
 
 
+class TestStaticCache:
+    def test_caches_file_content(self, tmp_path):
+        from artwork_redirect.server import StaticCache
+
+        f = tmp_path / "test.html"
+        f.write_bytes(b"<html>hello</html>")
+        cache = StaticCache()
+        assert cache.get(str(f)) == b"<html>hello</html>"
+        # Second call returns cached content
+        assert cache.get(str(f)) == b"<html>hello</html>"
+
+    def test_returns_none_for_missing_file(self, tmp_path):
+        from artwork_redirect.server import StaticCache
+
+        cache = StaticCache()
+        assert cache.get(str(tmp_path / "nonexistent.html")) is None
+
+    def test_reloads_on_mtime_change(self, tmp_path, monkeypatch):
+        import artwork_redirect.server as server_mod
+        from artwork_redirect.server import StaticCache
+
+        f = tmp_path / "test.html"
+        f.write_bytes(b"v1")
+
+        # Use a short TTL for testing
+        monkeypatch.setattr(server_mod, "_STATIC_TTL", 0)
+        cache = StaticCache()
+        assert cache.get(str(f)) == b"v1"
+
+        # Overwrite with different content and a guaranteed different mtime
+        import time
+
+        time.sleep(1.1)
+        f.write_bytes(b"v2")
+        assert cache.get(str(f)) == b"v2"
+
+
+class TestServeStatic:
+    def test_serves_existing_file(self, tmp_path):
+        from artwork_redirect.server import StaticCache
+
+        f = tmp_path / "page.html"
+        f.write_bytes(b"<html>test</html>")
+
+        class FakeConfig:
+            static_path = str(tmp_path)
+
+        redirect = ArtworkRedirect(config=FakeConfig(), conn=None, static_cache=StaticCache())
+        result = redirect._serve_static(str(f), "text/html")
+        assert result.status_code == 200
+        assert result.data == b"<html>test</html>"
+
+    def test_missing_file_raises_not_found(self, tmp_path):
+        from werkzeug.exceptions import NotFound as WNotFound
+
+        from artwork_redirect.server import StaticCache
+
+        class FakeConfig:
+            static_path = str(tmp_path)
+
+        redirect = ArtworkRedirect(config=FakeConfig(), conn=None, static_cache=StaticCache())
+        with pytest.raises(WNotFound):
+            redirect._serve_static(str(tmp_path / "nope.html"), "text/html")
+
+    def test_works_without_cache(self, tmp_path):
+        f = tmp_path / "page.html"
+        f.write_bytes(b"<html>nocache</html>")
+
+        class FakeConfig:
+            static_path = str(tmp_path)
+
+        redirect = ArtworkRedirect(config=FakeConfig(), conn=None, static_cache=None)
+        result = redirect._serve_static(str(f), "text/html")
+        assert result.status_code == 200
+        assert result.data == b"<html>nocache</html>"
+
+
 class TestStatusCode:
     def test_200(self):
         assert statuscode(200) == "200 OK"

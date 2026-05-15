@@ -22,6 +22,8 @@
 # THE SOFTWARE.
 
 import logging
+import os
+import time
 import traceback
 from contextlib import closing
 
@@ -33,6 +35,39 @@ import werkzeug.wrappers
 from sqlalchemy.pool import NullPool
 
 from artwork_redirect.request import ArtworkRedirect
+
+_STATIC_TTL = 300  # seconds between mtime checks
+
+
+class StaticCache:
+    """Cache static file contents, re-checking mtime every _STATIC_TTL seconds."""
+
+    def __init__(self):
+        self._entries = {}  # path -> (content, mtime, last_check)
+
+    def get(self, path):
+        now = time.monotonic()
+        entry = self._entries.get(path)
+        if entry:
+            content, mtime, last_check = entry
+            if now - last_check < _STATIC_TTL:
+                return content
+            try:
+                new_mtime = os.path.getmtime(path)
+            except OSError:
+                return None
+            if new_mtime == mtime:
+                self._entries[path] = (content, mtime, now)
+                return content
+        # Read (or re-read) the file
+        try:
+            with open(path, "rb") as f:
+                content = f.read()
+            mtime = os.path.getmtime(path)
+        except OSError:
+            return None
+        self._entries[path] = (content, mtime, now)
+        return content
 
 
 class Request(werkzeug.wrappers.Request):
@@ -59,9 +94,10 @@ class Server(object):
         self.config = config
         self.engine = sqlalchemy.create_engine(self.config.database.create_url(), poolclass=NullPool)
         self.conn = None
+        self.static_cache = StaticCache()
 
     def handle_request(self, conn, request):
-        return ArtworkRedirect(self.config, conn).handle(request)
+        return ArtworkRedirect(self.config, conn, self.static_cache).handle(request)
 
     @Request.application
     def __call__(self, request):

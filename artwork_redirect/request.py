@@ -78,11 +78,12 @@ def get_service_name(request):
 class ArtworkRedirect(object):
     """Handles index and redirect requests."""
 
-    def __init__(self, config, conn):
+    def __init__(self, config, conn, static_cache=None):
         self.config = config
         self.conn = conn
         self.cmd = None
         self.proto = None
+        self.static_cache = static_cache
 
     def validate_entity(self, request, entity):
         supported_entities = ALL_ENTITY_TYPES
@@ -344,6 +345,20 @@ class ArtworkRedirect(object):
 
         raise NotFound("event image with id %s not found" % (image_id))
 
+    def _serve_static(self, path, mimetype):
+        """Serve a static file from cache or disk."""
+        content = self.static_cache and self.static_cache.get(path)
+        if content is None:
+            if not os.path.isfile(path):
+                raise NotFound
+            try:
+                with open(path, "rb") as f:
+                    content = f.read()
+            except Exception as e:
+                sentry_sdk.capture_exception(e)
+                return Response(status=500, response="Internal Server Error")
+        return Response(response=content, mimetype=mimetype)
+
     def handle_index(self, request, index_page=None):
         """Serve up the one static index page."""
         if index_page is None:
@@ -353,27 +368,10 @@ class ArtworkRedirect(object):
                 index_page = "coverartarchive.html"
             elif service_name == "event":
                 index_page = "eventartarchive.html"
-        try:
-            f = open(os.path.join(self.config.static_path, index_page))
-        except IOError as e:
-            sentry_sdk.capture_exception(e)
-            return Response(status=500, response="Internal Server Error")
-        txt = f.read()
-        f.close()
-        return Response(response=txt, mimetype="text/html")
+        return self._serve_static(os.path.join(self.config.static_path, index_page), "text/html")
 
     def handle_svg_img(self, name):
-        img_dir = os.path.join(self.config.static_path, "img")
-        if name not in os.listdir(img_dir):
-            raise NotFound
-        try:
-            f = open(os.path.join(img_dir, name))
-        except IOError as e:
-            sentry_sdk.capture_exception(e)
-            return Response(status=500, response="Internal Server Error")
-        txt = f.read()
-        f.close()
-        return Response(response=txt, mimetype="image/svg+xml")
+        return self._serve_static(os.path.join(self.config.static_path, "img", name), "image/svg+xml")
 
     def handle_robots(self):
         """Serve up a permissive robots.txt."""
