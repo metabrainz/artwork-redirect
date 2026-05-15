@@ -81,8 +81,6 @@ class ArtworkRedirect(object):
     def __init__(self, config, conn, static_cache=None):
         self.config = config
         self.conn = conn
-        self.cmd = None
-        self.proto = None
         self.static_cache = static_cache
 
     def validate_entity(self, request, entity):
@@ -113,7 +111,7 @@ class ArtworkRedirect(object):
         if "-" not in filename:
             return ""
 
-        id, size = filename.rsplit("-", 1)
+        _, size = filename.rsplit("-", 1)
 
         if size.startswith("250"):
             return "-250"
@@ -220,15 +218,15 @@ class ArtworkRedirect(object):
 
         raise NotFound("No cover art found for release group %s" % (mbid))
 
-    def resolve_release_cover(self, mbid, type, thumbnail):
+    def resolve_release_cover(self, mbid, cover_type, thumbnail):
         """Get the frontiest or backiest cover image."""
 
-        if type == "Front":
+        if cover_type == "Front":
             type_filter = "is_front = true"
-        elif type == "Back":
+        elif cover_type == "Back":
             type_filter = "is_back = true"
         else:
-            raise NotFound("No %s cover image found for release with identifier %s" % (type.lower(), mbid))
+            raise NotFound("No %s cover image found for release with identifier %s" % (cover_type.lower(), mbid))
 
         query = text(
             f"""
@@ -252,15 +250,15 @@ class ArtworkRedirect(object):
         if row:
             return "%s%s.%s" % (str(row[0]), thumbnail, row[1])
 
-        raise NotFound("No %s cover image found for release with identifier %s" % (type.lower(), mbid))
+        raise NotFound("No %s cover image found for release with identifier %s" % (cover_type.lower(), mbid))
 
-    def resolve_event_art(self, mbid, type, thumbnail):
+    def resolve_event_art(self, mbid, cover_type, thumbnail):
         """Get the frontiest artwork image."""
 
-        if type == "Front":
+        if cover_type == "Front":
             type_filter = "is_front = true"
         else:
-            raise NotFound("No %s image found for event with identifier %s" % (type.lower(), mbid))
+            raise NotFound("No %s image found for event with identifier %s" % (cover_type.lower(), mbid))
 
         query = text(
             f"""
@@ -284,7 +282,7 @@ class ArtworkRedirect(object):
         if row:
             return "%s%s.%s" % (str(row[0]), thumbnail, row[1])
 
-        raise NotFound("No %s image found for event with identifier %s" % (type.lower(), mbid))
+        raise NotFound("No %s image found for event with identifier %s" % (cover_type.lower(), mbid))
 
     def resolve_release_image_id(self, mbid, filename, thumbnail):
         """Get a cover image by image id."""

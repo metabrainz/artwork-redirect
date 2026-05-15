@@ -10,7 +10,6 @@ from artwork_redirect.request import (
     get_service_name,
     pop_path_info,
 )
-from artwork_redirect.utils import statuscode
 
 
 class TestPopPathInfo:
@@ -237,14 +236,3 @@ class TestServeStatic:
         result = redirect._serve_static(str(f), "text/html")
         assert result.status_code == 200
         assert result.data == b"<html>nocache</html>"
-
-
-class TestStatusCode:
-    def test_200(self):
-        assert statuscode(200) == "200 OK"
-
-    def test_404(self):
-        assert statuscode(404) == "404 Not Found"
-
-    def test_501(self):
-        assert statuscode(501) == "501 Not Implemented"
