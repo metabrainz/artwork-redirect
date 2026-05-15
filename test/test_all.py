@@ -30,8 +30,8 @@ from sqlalchemy import text
 from werkzeug.test import Client, EnvironBuilder
 from werkzeug.wrappers import Response
 
+from artwork_redirect.config import load_config
 from artwork_redirect.server import Server
-from artwork_redirect_server import load_config
 
 
 @pytest.mark.integration
