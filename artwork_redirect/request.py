@@ -418,19 +418,16 @@ class ArtworkRedirect(object):
 
             image_id = shift_path_info(request.environ)
 
-            if image_id and image_id is not None:
+            if image_id:
                 image_id = splitext(image_id)[0]
-                _split = image_id.split("-")
-                if len(_split) > 0:
-                    id_text = _split[0]
+                _split = image_id.split("-", 1)
+                id_text = _split[0]
 
                 try:
                     int(id_text)
-                except ValueError as e:
+                except ValueError:
                     if id_text not in ("front", "back"):
                         raise BadRequest()
-                    else:
-                        sentry_sdk.capture_exception(e)
 
                 if len(_split) > 1:
                     size = _split[1]

@@ -104,6 +104,38 @@ class TestThumbnail:
         assert self.redirect.thumbnail("12345-999.jpg") == ""
 
 
+class TestHandleOptions:
+    def setup_method(self):
+        self.redirect = ArtworkRedirect(config=None, conn=None)
+
+    def _options_request(self, path_info):
+        """Simulate environ after entity has been popped by handle()."""
+        from artwork_redirect.server import Request
+
+        builder = EnvironBuilder(method="OPTIONS")
+        env = builder.get_environ()
+        env["SERVER_PROTOCOL"] = "HTTP/1.1"
+        env["PATH_INFO"] = path_info
+        return Request(env)
+
+    def test_image_id_with_size(self):
+        # PATH_INFO after "release" has been popped: /mbid/12345-250.jpg
+        request = self._options_request("/ab5245f6-ae8d-49a5-be42-6347f6c0330e/12345-250.jpg")
+        result = self.redirect.handle_options(request, "release")
+        assert isinstance(result, Response)
+        assert result.status_code == 200
+
+    def test_image_id_invalid_size(self):
+        request = self._options_request("/ab5245f6-ae8d-49a5-be42-6347f6c0330e/12345-999.jpg")
+        with pytest.raises(BadRequest):
+            self.redirect.handle_options(request, "release")
+
+    def test_front(self):
+        request = self._options_request("/ab5245f6-ae8d-49a5-be42-6347f6c0330e/front")
+        result = self.redirect.handle_options(request, "release")
+        assert result.status_code == 200
+
+
 class TestHandleRedirect:
     def setup_method(self):
         self.redirect = ArtworkRedirect(config=None, conn=None)
