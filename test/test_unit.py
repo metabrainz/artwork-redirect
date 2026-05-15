@@ -3,6 +3,7 @@
 import pytest
 from werkzeug.exceptions import BadRequest
 from werkzeug.test import EnvironBuilder
+from werkzeug.wrappers import Response
 
 from artwork_redirect.request import (
     ArtworkRedirect,
@@ -101,6 +102,20 @@ class TestThumbnail:
 
     def test_unknown_size(self):
         assert self.redirect.thumbnail("12345-999.jpg") == ""
+
+
+class TestHandleRedirect:
+    def setup_method(self):
+        self.redirect = ArtworkRedirect(config=None, conn=None)
+
+    def test_empty_filename_returns_response(self):
+        from artwork_redirect.server import Request
+
+        builder = EnvironBuilder(method="GET")
+        request = Request(builder.get_environ())
+        result = self.redirect.handle_redirect(request, "some-mbid", "")
+        assert isinstance(result, Response)
+        assert result.status_code == 400
 
 
 class TestStatusCode:

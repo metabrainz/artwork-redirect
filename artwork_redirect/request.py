@@ -484,7 +484,7 @@ class ArtworkRedirect(object):
         """Handle the 307 redirect."""
 
         if not filename:
-            return [statuscode(400), "no filename specified"]
+            return Response(status=400, response="no filename specified")
 
         filename = re.sub("-250.(jpg|gif|png|pdf)", "_thumb250.jpg", filename)
         filename = re.sub("-500.(jpg|gif|png|pdf)", "_thumb500.jpg", filename)
