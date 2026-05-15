@@ -70,3 +70,7 @@ will fail with configuration errors.
     $ uv run ruff check .
     $ uv run ruff format .
     $ uv run pytest
+
+## Benchmarking
+
+See [benchmarks/README.md](benchmarks/README.md).
