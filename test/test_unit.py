@@ -149,6 +149,18 @@ class TestHandleRedirect:
         assert isinstance(result, Response)
         assert result.status_code == 400
 
+    def test_thumb_substitution_250(self):
+        assert self.redirect._apply_thumb_subs("100000001-250.jpg") == "100000001_thumb250.jpg"
+
+    def test_thumb_substitution_500(self):
+        assert self.redirect._apply_thumb_subs("100000001-500.jpg") == "100000001_thumb500.jpg"
+
+    def test_thumb_substitution_1200(self):
+        assert self.redirect._apply_thumb_subs("100000001-1200.jpg") == "100000001_thumb1200.jpg"
+
+    def test_thumb_substitution_no_match(self):
+        assert self.redirect._apply_thumb_subs("100000001.jpg") == "100000001.jpg"
+
 
 class TestStatusCode:
     def test_200(self):

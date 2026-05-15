@@ -37,6 +37,8 @@ CAA_ENTITY_TYPES = ["release", "release-group"]
 EAA_ENTITY_TYPES = ["event"]
 ALL_ENTITY_TYPES = CAA_ENTITY_TYPES + EAA_ENTITY_TYPES
 
+_THUMB_RE = re.compile(r"-(250|500|1200).(jpg|gif|png|pdf)")
+
 
 # Copied from https://github.com/pgjones/werkzeug/blob/a34d1f7/src/werkzeug/wsgi.py#L240
 def pop_path_info(environ):
@@ -61,8 +63,13 @@ def pop_path_info(environ):
     return rv.decode("utf-8", "replace")
 
 
+_SERVICE_RE = re.compile(r"^(?:(beta)\.)?(cover|event)artarchive.org$")
+_IMAGE_ID_RE = re.compile(r"[^0-9]")
+_MBID_RE = re.compile(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}")
+
+
 def get_service_name(request):
-    match = re.match(r"^(?:(beta)\.)?(cover|event)artarchive.org$", request.host)
+    match = _SERVICE_RE.match(request.host)
     if match:
         return match.groups()
     return ("", "")
@@ -98,7 +105,7 @@ class ArtworkRedirect(object):
         """Check if an MBID is syntactically valid. If not, raise a BadRequest."""
         if not mbid:
             raise BadRequest("no MBID specified")
-        if not re.fullmatch("^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$", mbid):
+        if not _MBID_RE.fullmatch(mbid):
             raise BadRequest("invalid MBID specified")
 
     def thumbnail(self, filename):
@@ -293,7 +300,8 @@ class ArtworkRedirect(object):
     def resolve_release_image_id(self, mbid, filename, thumbnail):
         """Get a cover image by image id."""
 
-        possible_id = re.sub("[^0-9].*", "", filename)
+        m = _IMAGE_ID_RE.search(filename)
+        possible_id = filename[: m.start()] if m else filename
 
         try:
             image_id = int(possible_id)
@@ -323,7 +331,8 @@ class ArtworkRedirect(object):
     def resolve_event_image_id(self, mbid, filename, thumbnail):
         """Get an event image by image id."""
 
-        possible_id = re.sub("[^0-9].*", "", filename)
+        m = _IMAGE_ID_RE.search(filename)
+        possible_id = filename[: m.start()] if m else filename
 
         try:
             image_id = int(possible_id)
@@ -475,15 +484,19 @@ class ArtworkRedirect(object):
 
         return self.handle_redirect(request, mbid, filename)
 
+    def _apply_thumb_subs(self, filename):
+        m = _THUMB_RE.search(filename)
+        if m:
+            return filename[: m.start()] + "_thumb" + m.group(1) + ".jpg"
+        return filename
+
     def handle_redirect(self, request, mbid, filename):
         """Handle the 307 redirect."""
 
         if not filename:
             return Response(status=400, response="no filename specified")
 
-        filename = re.sub("-250.(jpg|gif|png|pdf)", "_thumb250.jpg", filename)
-        filename = re.sub("-500.(jpg|gif|png|pdf)", "_thumb500.jpg", filename)
-        filename = re.sub("-1200.(jpg|gif|png|pdf)", "_thumb1200.jpg", filename)
+        filename = self._apply_thumb_subs(filename)
 
         url = "%s/mbid-%s/mbid-%s-%s" % (self.config.ia.download_prefix, mbid, mbid, filename)
         return request.redirect(code=307, location=url)
