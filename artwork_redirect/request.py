@@ -33,8 +33,6 @@ from werkzeug.exceptions import BadRequest, NotFound
 from werkzeug.exceptions import NotImplemented as HTTPNotImplemented
 from werkzeug.wrappers import Response
 
-from artwork_redirect.utils import statuscode
-
 CAA_ENTITY_TYPES = ["release", "release-group"]
 EAA_ENTITY_TYPES = ["event"]
 ALL_ENTITY_TYPES = CAA_ENTITY_TYPES + EAA_ENTITY_TYPES
