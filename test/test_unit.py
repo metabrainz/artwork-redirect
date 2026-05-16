@@ -236,3 +236,44 @@ class TestServeStatic:
         result = redirect._serve_static(str(f), "text/html")
         assert result.status_code == 200
         assert result.data == b"<html>nocache</html>"
+
+
+class TestDatabaseConfig:
+    def test_default_pool_mode(self):
+        from artwork_redirect.config import DatabaseConfig
+
+        db = DatabaseConfig()
+        assert db.pool_mode == "null"
+        assert db.pool_recycle == 300
+        assert db.pool_size == 2
+        assert db.pool_max_overflow == 3
+
+    def test_null_pool_kwargs(self):
+        from sqlalchemy.pool import NullPool
+
+        from artwork_redirect.config import DatabaseConfig
+
+        db = DatabaseConfig()
+        kwargs = db.create_engine_kwargs()
+        assert kwargs["poolclass"] is NullPool
+        assert "pool_recycle" not in kwargs
+
+    def test_queue_pool_kwargs(self):
+        from artwork_redirect.config import DatabaseConfig
+
+        db = DatabaseConfig()
+        db.pool_mode = "queue"
+        kwargs = db.create_engine_kwargs()
+        assert "poolclass" not in kwargs
+        assert kwargs["pool_recycle"] == 300
+        assert kwargs["pool_size"] == 2
+        assert kwargs["max_overflow"] == 3
+
+    def test_custom_pool_recycle(self):
+        from artwork_redirect.config import DatabaseConfig
+
+        db = DatabaseConfig()
+        db.pool_mode = "queue"
+        db.pool_recycle = 600
+        kwargs = db.create_engine_kwargs()
+        assert kwargs["pool_recycle"] == 600

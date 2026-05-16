@@ -50,6 +50,21 @@ class DatabaseConfig(object):
         self.port = None
         self.password = None
         self.static_path = None
+        self.pool_mode = "null"
+        self.pool_recycle = 300
+        self.pool_size = 2
+        self.pool_max_overflow = 3
+
+    def create_engine_kwargs(self):
+        if self.pool_mode == "queue":
+            return {
+                "pool_recycle": self.pool_recycle,
+                "pool_size": self.pool_size,
+                "max_overflow": self.pool_max_overflow,
+            }
+        from sqlalchemy.pool import NullPool
+
+        return {"poolclass": NullPool}
 
     def create_url(self, superuser=False):
         kwargs = {}
@@ -75,6 +90,14 @@ class DatabaseConfig(object):
             self.port = parser.getint(section, "port")
         if parser.has_option(section, "password"):
             self.password = parser.get(section, "password")
+        if parser.has_option(section, "pool_mode"):
+            self.pool_mode = parser.get(section, "pool_mode")
+        if parser.has_option(section, "pool_recycle"):
+            self.pool_recycle = parser.getint(section, "pool_recycle")
+        if parser.has_option(section, "pool_size"):
+            self.pool_size = parser.getint(section, "pool_size")
+        if parser.has_option(section, "pool_max_overflow"):
+            self.pool_max_overflow = parser.getint(section, "pool_max_overflow")
 
 
 class Config(object):

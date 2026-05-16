@@ -32,7 +32,6 @@ import sqlalchemy
 import werkzeug.exceptions
 import werkzeug.urls
 import werkzeug.wrappers
-from sqlalchemy.pool import NullPool
 
 from artwork_redirect.request import ArtworkRedirect
 
@@ -92,7 +91,9 @@ class Request(werkzeug.wrappers.Request):
 class Server(object):
     def __init__(self, config):
         self.config = config
-        self.engine = sqlalchemy.create_engine(self.config.database.create_url(), poolclass=NullPool)
+        self.engine = sqlalchemy.create_engine(
+            self.config.database.create_url(), **config.database.create_engine_kwargs()
+        )
         self.conn = None
         self.static_cache = StaticCache()
 
