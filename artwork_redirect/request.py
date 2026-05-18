@@ -130,8 +130,7 @@ class ArtworkRedirect(object):
         t = quote(entity)
         t_redir = quote(f"{entity}_gid_redirect")
         return f"""SELECT COALESCE(
-            (SELECT r.id FROM musicbrainz.{t} r
-             JOIN musicbrainz.{t_redir} redir ON redir.new_id = r.id
+            (SELECT redir.new_id FROM musicbrainz.{t_redir} redir
              WHERE redir.gid = :mbid),
             (SELECT r.id FROM musicbrainz.{t} r WHERE r.gid = :mbid)
         )"""
