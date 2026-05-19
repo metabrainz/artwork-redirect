@@ -3,13 +3,13 @@
 import pytest
 from werkzeug.exceptions import BadRequest
 from werkzeug.test import EnvironBuilder
+from werkzeug.wrappers import Response
 
 from artwork_redirect.request import (
     ArtworkRedirect,
     get_service_name,
     pop_path_info,
 )
-from artwork_redirect.utils import statuscode
 
 
 class TestPopPathInfo:
@@ -103,12 +103,177 @@ class TestThumbnail:
         assert self.redirect.thumbnail("12345-999.jpg") == ""
 
 
-class TestStatusCode:
-    def test_200(self):
-        assert statuscode(200) == "200 OK"
+class TestHandleOptions:
+    def setup_method(self):
+        self.redirect = ArtworkRedirect(config=None, conn=None)
 
-    def test_404(self):
-        assert statuscode(404) == "404 Not Found"
+    def _options_request(self, path_info):
+        """Simulate environ after entity has been popped by handle()."""
+        from artwork_redirect.server import Request
 
-    def test_501(self):
-        assert statuscode(501) == "501 Not Implemented"
+        builder = EnvironBuilder(method="OPTIONS")
+        env = builder.get_environ()
+        env["SERVER_PROTOCOL"] = "HTTP/1.1"
+        env["PATH_INFO"] = path_info
+        return Request(env)
+
+    def test_image_id_with_size(self):
+        # PATH_INFO after "release" has been popped: /mbid/12345-250.jpg
+        request = self._options_request("/ab5245f6-ae8d-49a5-be42-6347f6c0330e/12345-250.jpg")
+        result = self.redirect.handle_options(request, "release")
+        assert isinstance(result, Response)
+        assert result.status_code == 200
+
+    def test_image_id_invalid_size(self):
+        request = self._options_request("/ab5245f6-ae8d-49a5-be42-6347f6c0330e/12345-999.jpg")
+        with pytest.raises(BadRequest):
+            self.redirect.handle_options(request, "release")
+
+    def test_front(self):
+        request = self._options_request("/ab5245f6-ae8d-49a5-be42-6347f6c0330e/front")
+        result = self.redirect.handle_options(request, "release")
+        assert result.status_code == 200
+
+
+class TestHandleRedirect:
+    def setup_method(self):
+        self.redirect = ArtworkRedirect(config=None, conn=None)
+
+    def test_empty_filename_returns_response(self):
+        from artwork_redirect.server import Request
+
+        builder = EnvironBuilder(method="GET")
+        request = Request(builder.get_environ())
+        result = self.redirect.handle_redirect(request, "some-mbid", "")
+        assert isinstance(result, Response)
+        assert result.status_code == 400
+
+    def test_thumb_substitution_250(self):
+        assert self.redirect._apply_thumb_subs("100000001-250.jpg") == "100000001_thumb250.jpg"
+
+    def test_thumb_substitution_500(self):
+        assert self.redirect._apply_thumb_subs("100000001-500.jpg") == "100000001_thumb500.jpg"
+
+    def test_thumb_substitution_1200(self):
+        assert self.redirect._apply_thumb_subs("100000001-1200.jpg") == "100000001_thumb1200.jpg"
+
+    def test_thumb_substitution_no_match(self):
+        assert self.redirect._apply_thumb_subs("100000001.jpg") == "100000001.jpg"
+
+
+class TestStaticCache:
+    def test_caches_file_content(self, tmp_path):
+        from artwork_redirect.server import StaticCache
+
+        f = tmp_path / "test.html"
+        f.write_bytes(b"<html>hello</html>")
+        cache = StaticCache()
+        assert cache.get(str(f)) == b"<html>hello</html>"
+        # Second call returns cached content
+        assert cache.get(str(f)) == b"<html>hello</html>"
+
+    def test_returns_none_for_missing_file(self, tmp_path):
+        from artwork_redirect.server import StaticCache
+
+        cache = StaticCache()
+        assert cache.get(str(tmp_path / "nonexistent.html")) is None
+
+    def test_reloads_on_mtime_change(self, tmp_path, monkeypatch):
+        import artwork_redirect.server as server_mod
+        from artwork_redirect.server import StaticCache
+
+        f = tmp_path / "test.html"
+        f.write_bytes(b"v1")
+
+        # Use a short TTL for testing
+        monkeypatch.setattr(server_mod, "_STATIC_TTL", 0)
+        cache = StaticCache()
+        assert cache.get(str(f)) == b"v1"
+
+        # Overwrite with different content and a guaranteed different mtime
+        import time
+
+        time.sleep(1.1)
+        f.write_bytes(b"v2")
+        assert cache.get(str(f)) == b"v2"
+
+
+class TestServeStatic:
+    def test_serves_existing_file(self, tmp_path):
+        from artwork_redirect.server import StaticCache
+
+        f = tmp_path / "page.html"
+        f.write_bytes(b"<html>test</html>")
+
+        class FakeConfig:
+            static_path = str(tmp_path)
+
+        redirect = ArtworkRedirect(config=FakeConfig(), conn=None, static_cache=StaticCache())
+        result = redirect._serve_static(str(f), "text/html")
+        assert result.status_code == 200
+        assert result.data == b"<html>test</html>"
+
+    def test_missing_file_raises_not_found(self, tmp_path):
+        from werkzeug.exceptions import NotFound as WNotFound
+
+        from artwork_redirect.server import StaticCache
+
+        class FakeConfig:
+            static_path = str(tmp_path)
+
+        redirect = ArtworkRedirect(config=FakeConfig(), conn=None, static_cache=StaticCache())
+        with pytest.raises(WNotFound):
+            redirect._serve_static(str(tmp_path / "nope.html"), "text/html")
+
+    def test_works_without_cache(self, tmp_path):
+        f = tmp_path / "page.html"
+        f.write_bytes(b"<html>nocache</html>")
+
+        class FakeConfig:
+            static_path = str(tmp_path)
+
+        redirect = ArtworkRedirect(config=FakeConfig(), conn=None, static_cache=None)
+        result = redirect._serve_static(str(f), "text/html")
+        assert result.status_code == 200
+        assert result.data == b"<html>nocache</html>"
+
+
+class TestDatabaseConfig:
+    def test_default_pool_mode(self):
+        from artwork_redirect.config import DatabaseConfig
+
+        db = DatabaseConfig()
+        assert db.pool_mode == "null"
+        assert db.pool_recycle == 300
+        assert db.pool_size == 2
+        assert db.pool_max_overflow == 3
+
+    def test_null_pool_kwargs(self):
+        from sqlalchemy.pool import NullPool
+
+        from artwork_redirect.config import DatabaseConfig
+
+        db = DatabaseConfig()
+        kwargs = db.create_engine_kwargs()
+        assert kwargs["poolclass"] is NullPool
+        assert "pool_recycle" not in kwargs
+
+    def test_queue_pool_kwargs(self):
+        from artwork_redirect.config import DatabaseConfig
+
+        db = DatabaseConfig()
+        db.pool_mode = "queue"
+        kwargs = db.create_engine_kwargs()
+        assert "poolclass" not in kwargs
+        assert kwargs["pool_recycle"] == 300
+        assert kwargs["pool_size"] == 2
+        assert kwargs["max_overflow"] == 3
+
+    def test_custom_pool_recycle(self):
+        from artwork_redirect.config import DatabaseConfig
+
+        db = DatabaseConfig()
+        db.pool_mode = "queue"
+        db.pool_recycle = 600
+        kwargs = db.create_engine_kwargs()
+        assert kwargs["pool_recycle"] == 600

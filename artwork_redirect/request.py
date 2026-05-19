@@ -33,11 +33,11 @@ from werkzeug.exceptions import BadRequest, NotFound
 from werkzeug.exceptions import NotImplemented as HTTPNotImplemented
 from werkzeug.wrappers import Response
 
-from artwork_redirect.utils import statuscode
-
 CAA_ENTITY_TYPES = ["release", "release-group"]
 EAA_ENTITY_TYPES = ["event"]
 ALL_ENTITY_TYPES = CAA_ENTITY_TYPES + EAA_ENTITY_TYPES
+
+_THUMB_RE = re.compile(r"-(250|500|1200).(jpg|gif|png|pdf)")
 
 
 # Copied from https://github.com/pgjones/werkzeug/blob/a34d1f7/src/werkzeug/wsgi.py#L240
@@ -63,8 +63,13 @@ def pop_path_info(environ):
     return rv.decode("utf-8", "replace")
 
 
+_SERVICE_RE = re.compile(r"^(?:(beta)\.)?(cover|event)artarchive.org$")
+_IMAGE_ID_RE = re.compile(r"[^0-9]")
+_MBID_RE = re.compile(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}")
+
+
 def get_service_name(request):
-    match = re.match(r"^(?:(beta)\.)?(cover|event)artarchive.org$", request.host)
+    match = _SERVICE_RE.match(request.host)
     if match:
         return match.groups()
     return ("", "")
@@ -73,11 +78,10 @@ def get_service_name(request):
 class ArtworkRedirect(object):
     """Handles index and redirect requests."""
 
-    def __init__(self, config, conn):
+    def __init__(self, config, conn, static_cache=None):
         self.config = config
         self.conn = conn
-        self.cmd = None
-        self.proto = None
+        self.static_cache = static_cache
 
     def validate_entity(self, request, entity):
         supported_entities = ALL_ENTITY_TYPES
@@ -100,14 +104,14 @@ class ArtworkRedirect(object):
         """Check if an MBID is syntactically valid. If not, raise a BadRequest."""
         if not mbid:
             raise BadRequest("no MBID specified")
-        if not re.fullmatch("^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$", mbid):
+        if not _MBID_RE.fullmatch(mbid):
             raise BadRequest("invalid MBID specified")
 
     def thumbnail(self, filename):
         if "-" not in filename:
             return ""
 
-        id, size = filename.rsplit("-", 1)
+        _, size = filename.rsplit("-", 1)
 
         if size.startswith("250"):
             return "-250"
@@ -118,42 +122,29 @@ class ArtworkRedirect(object):
         else:
             return ""
 
-    def resolve_mbid(self, entity, mbid):
-        """Handle the GID redirect.
-
-        Query the database to see if the given release has been merged into
-        another release. If so, return the redirected MBID, otherwise return
-        the original MBID.
-        """
-
+    def _resolve_entity_id_sql(self, entity):
+        """Return a SQL subquery that resolves an MBID to an entity id,
+        following GID redirects. Use as: WHERE entity.id = ({this})"""
         entity = entity.replace("-", "_")
-
-        query = text(f"""
-            SELECT {entity}.gid
-              FROM musicbrainz.{entity}
-              JOIN musicbrainz.{entity}_gid_redirect
-                ON {entity}_gid_redirect.new_id = {entity}.id
-             WHERE {entity}_gid_redirect.gid = :mbid
-        """).bindparams(mbid=mbid)
-
-        resultproxy = self.conn.execute(query)
-        row = resultproxy.fetchone()
-        resultproxy.close()
-        if row:
-            return row[0]
-
-        return mbid
+        quote = self.conn.dialect.identifier_preparer.quote
+        t = quote(entity)
+        t_redir = quote(f"{entity}_gid_redirect")
+        return f"""SELECT COALESCE(
+            (SELECT redir.new_id FROM musicbrainz.{t_redir} redir
+             WHERE redir.gid = :mbid),
+            (SELECT r.id FROM musicbrainz.{t} r WHERE r.gid = :mbid)
+        )"""
 
     def resolve_release_cover_index(self, mbid):
         """Query the database to see if the given release has any
         cover art entries, if not respond with a 404 to the request.
         """
 
-        query = text("""
+        query = text(f"""
             SELECT release.gid
               FROM musicbrainz.release
               JOIN cover_art_archive.cover_art ON release = release.id
-             WHERE release.gid = :mbid
+             WHERE release.id = ({self._resolve_entity_id_sql("release")})
         """).bindparams(mbid=mbid)
 
         resultproxy = self.conn.execute(query)
@@ -169,11 +160,11 @@ class ArtworkRedirect(object):
         artwork entries. If not, respond with a 404 to the request.
         """
 
-        query = text("""
+        query = text(f"""
             SELECT event.gid
               FROM musicbrainz.event
               JOIN event_art_archive.event_art ON event = event.id
-             WHERE event.gid = :mbid
+             WHERE event.id = ({self._resolve_entity_id_sql("event")})
         """).bindparams(mbid=mbid)
 
         resultproxy = self.conn.execute(query)
@@ -192,7 +183,7 @@ class ArtworkRedirect(object):
         NotFound exception.
         """
 
-        query = text("""
+        query = text(f"""
         SELECT DISTINCT ON (release.release_group)
           release.gid AS mbid
         FROM cover_art_archive.index_listing
@@ -209,7 +200,7 @@ class ArtworkRedirect(object):
         ) release_event ON (release_event.release = release.id)
         FULL OUTER JOIN cover_art_archive.release_group_cover_art
         ON release_group_cover_art.release = musicbrainz.release.id
-        WHERE release_group.gid = :mbid
+        WHERE release_group.id = ({self._resolve_entity_id_sql("release_group")})
         AND is_front = true
         ORDER BY release.release_group, release_group_cover_art.release,
           (CASE WHEN 'Raw/Unedited' = any(cover_art_archive.index_listing.types)
@@ -226,25 +217,25 @@ class ArtworkRedirect(object):
 
         raise NotFound("No cover art found for release group %s" % (mbid))
 
-    def resolve_release_cover(self, mbid, type, thumbnail):
+    def resolve_release_cover(self, mbid, cover_type, thumbnail):
         """Get the frontiest or backiest cover image."""
 
-        if type == "Front":
+        if cover_type == "Front":
             type_filter = "is_front = true"
-        elif type == "Back":
+        elif cover_type == "Back":
             type_filter = "is_back = true"
         else:
-            raise NotFound("No %s cover image found for release with identifier %s" % (type.lower(), mbid))
+            raise NotFound("No %s cover image found for release with identifier %s" % (cover_type.lower(), mbid))
 
         query = text(
-            """
+            f"""
             SELECT index_listing.id, image_type.suffix
               FROM cover_art_archive.index_listing
               JOIN musicbrainz.release
                 ON cover_art_archive.index_listing.release = musicbrainz.release.id
               JOIN cover_art_archive.image_type
                 ON cover_art_archive.index_listing.mime_type = cover_art_archive.image_type.mime_type
-             WHERE musicbrainz.release.gid = :mbid
+             WHERE musicbrainz.release.id = ({self._resolve_entity_id_sql("release")})
                AND """
             + type_filter
             + """
@@ -258,25 +249,25 @@ class ArtworkRedirect(object):
         if row:
             return "%s%s.%s" % (str(row[0]), thumbnail, row[1])
 
-        raise NotFound("No %s cover image found for release with identifier %s" % (type.lower(), mbid))
+        raise NotFound("No %s cover image found for release with identifier %s" % (cover_type.lower(), mbid))
 
-    def resolve_event_art(self, mbid, type, thumbnail):
+    def resolve_event_art(self, mbid, cover_type, thumbnail):
         """Get the frontiest artwork image."""
 
-        if type == "Front":
+        if cover_type == "Front":
             type_filter = "is_front = true"
         else:
-            raise NotFound("No %s image found for event with identifier %s" % (type.lower(), mbid))
+            raise NotFound("No %s image found for event with identifier %s" % (cover_type.lower(), mbid))
 
         query = text(
-            """
+            f"""
             SELECT index_listing.id, image_type.suffix
               FROM event_art_archive.index_listing
               JOIN musicbrainz.event
                 ON event_art_archive.index_listing.event = musicbrainz.event.id
               JOIN cover_art_archive.image_type
                 ON event_art_archive.index_listing.mime_type = cover_art_archive.image_type.mime_type
-             WHERE musicbrainz.event.gid = :mbid
+             WHERE musicbrainz.event.id = ({self._resolve_entity_id_sql("event")})
                AND """
             + type_filter
             + """
@@ -290,26 +281,27 @@ class ArtworkRedirect(object):
         if row:
             return "%s%s.%s" % (str(row[0]), thumbnail, row[1])
 
-        raise NotFound("No %s image found for event with identifier %s" % (type.lower(), mbid))
+        raise NotFound("No %s image found for event with identifier %s" % (cover_type.lower(), mbid))
 
     def resolve_release_image_id(self, mbid, filename, thumbnail):
         """Get a cover image by image id."""
 
-        possible_id = re.sub("[^0-9].*", "", filename)
+        m = _IMAGE_ID_RE.search(filename)
+        possible_id = filename[: m.start()] if m else filename
 
         try:
             image_id = int(possible_id)
         except ValueError:
             raise BadRequest("%s does not not contain a valid cover image id" % (filename))
 
-        query = text("""
+        query = text(f"""
             SELECT cover_art.id, suffix
               FROM cover_art_archive.cover_art
               JOIN musicbrainz.release
                 ON release = release.id
               JOIN cover_art_archive.image_type
                 ON cover_art.mime_type = image_type.mime_type
-             WHERE release.gid = :mbid
+             WHERE release.id = ({self._resolve_entity_id_sql("release")})
                AND cover_art.id = :image_id
           ORDER BY ordering ASC LIMIT 1;
         """).bindparams(mbid=mbid, image_id=image_id)
@@ -325,21 +317,22 @@ class ArtworkRedirect(object):
     def resolve_event_image_id(self, mbid, filename, thumbnail):
         """Get an event image by image id."""
 
-        possible_id = re.sub("[^0-9].*", "", filename)
+        m = _IMAGE_ID_RE.search(filename)
+        possible_id = filename[: m.start()] if m else filename
 
         try:
             image_id = int(possible_id)
         except ValueError:
             raise BadRequest("%s does not not contain a valid event image id" % (filename))
 
-        query = text("""
+        query = text(f"""
             SELECT event_art.id, suffix
               FROM event_art_archive.event_art
               JOIN musicbrainz.event
                 ON event = event.id
               JOIN cover_art_archive.image_type
                 ON event_art.mime_type = image_type.mime_type
-             WHERE event.gid = :mbid
+             WHERE event.id = ({self._resolve_entity_id_sql("event")})
                AND event_art.id = :image_id
           ORDER BY ordering ASC LIMIT 1;
         """).bindparams(mbid=mbid, image_id=image_id)
@@ -352,6 +345,20 @@ class ArtworkRedirect(object):
 
         raise NotFound("event image with id %s not found" % (image_id))
 
+    def _serve_static(self, path, mimetype):
+        """Serve a static file from cache or disk."""
+        content = self.static_cache and self.static_cache.get(path)
+        if content is None:
+            if not os.path.isfile(path):
+                raise NotFound
+            try:
+                with open(path, "rb") as f:
+                    content = f.read()
+            except Exception as e:
+                sentry_sdk.capture_exception(e)
+                return Response(status=500, response="Internal Server Error")
+        return Response(response=content, mimetype=mimetype)
+
     def handle_index(self, request, index_page=None):
         """Serve up the one static index page."""
         if index_page is None:
@@ -361,27 +368,10 @@ class ArtworkRedirect(object):
                 index_page = "coverartarchive.html"
             elif service_name == "event":
                 index_page = "eventartarchive.html"
-        try:
-            f = open(os.path.join(self.config.static_path, index_page))
-        except IOError as e:
-            sentry_sdk.capture_exception(e)
-            return Response(status=500, response="Internal Server Error")
-        txt = f.read()
-        f.close()
-        return Response(response=txt, mimetype="text/html")
+        return self._serve_static(os.path.join(self.config.static_path, index_page), "text/html")
 
     def handle_svg_img(self, name):
-        img_dir = os.path.join(self.config.static_path, "img")
-        if name not in os.listdir(img_dir):
-            raise NotFound
-        try:
-            f = open(os.path.join(img_dir, name))
-        except IOError as e:
-            sentry_sdk.capture_exception(e)
-            return Response(status=500, response="Internal Server Error")
-        txt = f.read()
-        f.close()
-        return Response(response=txt, mimetype="image/svg+xml")
+        return self._serve_static(os.path.join(self.config.static_path, "img", name), "image/svg+xml")
 
     def handle_robots(self):
         """Serve up a permissive robots.txt."""
@@ -420,19 +410,16 @@ class ArtworkRedirect(object):
 
             image_id = shift_path_info(request.environ)
 
-            if image_id and image_id is not None:
+            if image_id:
                 image_id = splitext(image_id)[0]
-                _split = image_id.split("-")
-                if len(_split) > 0:
-                    id_text = _split[0]
+                _split = image_id.split("-", 1)
+                id_text = _split[0]
 
                 try:
                     int(id_text)
-                except ValueError as e:
+                except ValueError:
                     if id_text not in ("front", "back"):
                         raise BadRequest()
-                    else:
-                        sentry_sdk.capture_exception(e)
 
                 if len(_split) > 1:
                     size = _split[1]
@@ -480,15 +467,19 @@ class ArtworkRedirect(object):
 
         return self.handle_redirect(request, mbid, filename)
 
+    def _apply_thumb_subs(self, filename):
+        m = _THUMB_RE.search(filename)
+        if m:
+            return filename[: m.start()] + "_thumb" + m.group(1) + ".jpg"
+        return filename
+
     def handle_redirect(self, request, mbid, filename):
         """Handle the 307 redirect."""
 
         if not filename:
-            return [statuscode(400), "no filename specified"]
+            return Response(status=400, response="no filename specified")
 
-        filename = re.sub("-250.(jpg|gif|png|pdf)", "_thumb250.jpg", filename)
-        filename = re.sub("-500.(jpg|gif|png|pdf)", "_thumb500.jpg", filename)
-        filename = re.sub("-1200.(jpg|gif|png|pdf)", "_thumb1200.jpg", filename)
+        filename = self._apply_thumb_subs(filename)
 
         url = "%s/mbid-%s/mbid-%s-%s" % (self.config.ia.download_prefix, mbid, mbid, filename)
         return request.redirect(code=307, location=url)
@@ -517,9 +508,8 @@ class ArtworkRedirect(object):
 
         req_mbid = shift_path_info(request.environ)
         self.validate_mbid(req_mbid)
-        req_mbid = uuid.UUID(req_mbid)
+        mbid = uuid.UUID(req_mbid)
 
-        mbid = self.resolve_mbid(entity, req_mbid)
         filename = pop_path_info(request.environ)
 
         if entity == "release-group":

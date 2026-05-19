@@ -30,8 +30,8 @@ from sqlalchemy import text
 from werkzeug.test import Client, EnvironBuilder
 from werkzeug.wrappers import Response
 
+from artwork_redirect.config import load_config
 from artwork_redirect.server import Server
-from artwork_redirect_server import load_config
 
 
 @pytest.mark.integration
@@ -200,7 +200,6 @@ class All(unittest.TestCase):
         self.verifyRedirect(req + "/999999999.jpg", expimg + "999999999.jpg", **kw)
 
     def test_release_group(self):
-
         response = self.server.get("/release-group/c9b6b442-38d5-11e2-a5e5-001cc0fde924")
         self.assertEqual(response.status, "404 NOT FOUND")
         self.assertTrue(b"No cover art found for release group" in response.data)
